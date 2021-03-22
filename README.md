@@ -1,0 +1,3 @@
+# IDTKBROPM
+這個專案是針對KBRO的[季度保固維護]提供輔助工具。
+運用Python3的multiprocessing進行SSH資料收取時運用多個Core優化效能
