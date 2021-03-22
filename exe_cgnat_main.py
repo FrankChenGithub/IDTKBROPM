@@ -44,12 +44,14 @@ if __name__ == "__main__":
     #  1. ssh取得log檔案 (multiprocessing)
     #  2. ParseLog(pl or exe)分解log為csv檔案(multiprocessing)
     #  3. csv檔案統計至xlsx
+    print(datetime.datetime.now().strftime("%Y%m%d%H%M"))
     mp.freeze_support()
     process_command_line_args(sys.argv)
     print("ide_mode" if ide_mode else "exe_mode")
     time_start = datetime.datetime.now()
     xminute = datetime.datetime.now().strftime("%Y%m%d%H%M")
     data_dir = os.path.join(work_dir, xminute)
+    print(datetime.datetime.now().strftime("%Y%m%d%H%M"), data_dir)
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     # 1. ssh取得log檔案 (multiprocessing)
