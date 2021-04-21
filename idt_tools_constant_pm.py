@@ -1,0 +1,95 @@
+import os
+from datetime import date
+import openpyxl
+
+server_log_root_unc_path = r"\\10.0.100.90\73c20-區域\客戶資料"
+server_asr = r"凱擘台媒ASR9K\MA PM 資料"
+server_cgnat = "凱擘台媒CGNAT"
+server_cmts = "凱擘台媒CMTS"
+
+# M:\凱擘台媒CMTS\MA PM 資料\2021 凱 擘CMTS MA\Q1
+kbro_so_with_index = ['01_UC', '02_KP', '03_HC', '04_NTP', '05_BNT', '06_DA_DAWS', '07_TC', '08_CG', '09_YMS', '10_Lab',
+                      '12_YJL', '13_GVC', '14_UCT', '15_MCT', '16_FM', '17_NCC', '18_NT', '19_PHC', '20_PN', '21_RH',
+                      '22_NTP_SI', '23_KS']
+
+idt_domain = "idtech"
+citrix_dont_write_cmds = ["vtysh", "ter le 0", "exit", "shell"]
+n9k_dont_write_cmds = ["ter le 0", "ter len 0", "ter wi 511"]
+
+pm_xlsx_file_name = ""
+pm_user = "IDT_PM"
+pm_pw = "IDT_PM@123"
+
+
+class IPCOLUMN:
+    device_ip = 1
+    device_host = 2
+    device_so = 3
+    device_type = 4
+    device_user = 5
+    device_pw = 6
+
+
+def get_device_cmds_via_excel_file(device_type, kbro_pm_xlsx_file_name='KBRO PM.xlsx'):
+    device_cmds = []
+    if not os.path.isfile(kbro_pm_xlsx_file_name):
+        return device_cmds
+    wb_obj = openpyxl.load_workbook(kbro_pm_xlsx_file_name)
+    try:
+        sheet_obj = wb_obj.get_sheet_by_name(device_type)
+    except:
+        print("No sheet in [{0}] named {1}".format(kbro_pm_xlsx_file_name, device_type))
+        return device_cmds
+
+    max_row = sheet_obj.max_row
+    for row in range(2, max_row + 1):
+        cmd = sheet_obj.cell(row=row, column=1).value
+        if cmd is None or len(cmd.strip()) == 0:
+            pass
+        else:
+            device_cmds.append(cmd.strip())
+    wb_obj.close()
+    return device_cmds
+
+
+def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip="IP"):
+    global pm_xlsx_file_name
+    pm_xlsx_file_name = kbro_pm_xlsx_file_name
+    if not os.path.isfile(kbro_pm_xlsx_file_name):
+        return False
+    wb_obj = openpyxl.load_workbook(kbro_pm_xlsx_file_name)
+    try:
+        sheet_obj = wb_obj.get_sheet_by_name(sheet_name_ip)
+    except:
+        print("No sheet in [{0}] named {1}".format(kbro_pm_xlsx_file_name, sheet_name_ip))
+        return False
+
+    cols = IPCOLUMN()
+    pm_ip_list = []
+    # today = date.today()
+    # print("Today's date:", today, today.month, today.day)
+    max_row = sheet_obj.max_row
+    max_column = sheet_obj.max_column
+    print("get_ips_via_excel_file: (max_row, max_column)", max_row, max_column)
+    for row in range(2, max_row + 1):
+        device_ip = sheet_obj.cell(row=row, column=cols.device_ip).value
+        if device_ip is None or len(device_ip.strip()) == 0:
+            continue
+        else:
+            device_ip = device_ip.strip()
+            device_host = sheet_obj.cell(row=row, column=cols.device_host).value
+            device_host = "無名" if device_host is None else device_host.strip()
+            device_so = sheet_obj.cell(row=row, column=cols.device_so).value.strip()
+            device_type = sheet_obj.cell(row=row, column=cols.device_type).value.strip()
+            device_user = sheet_obj.cell(row=row, column=cols.device_user).value
+            device_pw = sheet_obj.cell(row=row, column=cols.device_pw).value
+            if device_user is None or len(device_user.strip()) == 0:
+                device_user = pm_user
+                device_pw = pm_pw
+            else:
+                device_user = device_user.strip()
+                if device_pw is None or len(device_pw.strip()) == 0:
+                    device_pw = ""
+            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw])
+    wb_obj.close()
+    return pm_ip_list

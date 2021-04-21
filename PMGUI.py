@@ -13,7 +13,6 @@ import idt_tools_constant_pm as idtconst
 import KBROPM2021
 import idt_AES_CBC_Encrypt_Decrypt as idtauthen
 
-
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "KBRO系統定保工具"
@@ -142,7 +141,7 @@ def callback_execute_pm():
 
     if copy_pm == 1:
         if check_authentication(proc_name):
-            # successfully authenicated with idt
+            # successfully authenticated with idt
             drive_id = driveid.get()
             unc_path = idtconst.server_log_root_unc_path
             user_domain = idtconst.idt_domain
@@ -150,9 +149,7 @@ def callback_execute_pm():
                                                   drive_id)
         else:
             return
-
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
     KBROPM2021.pm_execute_ops(xlsx_file, str_time)
 
 

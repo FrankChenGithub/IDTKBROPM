@@ -661,3 +661,7 @@ def get_adobe_screenshot(IP, HOST, SO, DEVICE, id, pw):
     browser.get_screenshot_as_file(png_file_full_path)
     browser.close()
 
+
+def separate_files_via_ma(from_root, to_root):
+    pass
+
