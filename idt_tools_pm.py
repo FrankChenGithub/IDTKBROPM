@@ -13,9 +13,7 @@ from selenium.webdriver.common.by import By as WebBy
 from selenium.webdriver.support.ui import Select as WebSelect
 import idt_tools_constant_pm as idtconst
 
-quarter = (datetime.date.today().month-1)//3 + 1
-year = datetime.date.today().year
-str_log = "LOG_{}_Q{}".format(year, quarter)
+str_log = idtconst.str_log
 
 ##設定PDF 頁面的參數
 def convert_pdf(FOLDER, FILENAMEPDF):
@@ -662,6 +660,4 @@ def get_adobe_screenshot(IP, HOST, SO, DEVICE, id, pw):
     browser.close()
 
 
-def separate_files_via_ma(from_root, to_root):
-    pass
 

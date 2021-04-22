@@ -9,6 +9,7 @@ import idt_tools_constant_pm as idtconst
 import idt_tools_pm as idtpm
 import idt_tools_citrix_netscaler as idtcrtrix
 import idt_tools_ssh as idtssh
+import idt_tools_constant_pm as pmconst
 
 
 def pm_execute_ops(pm_xlsx_file_name, event_time, drive_letter=""):
@@ -80,12 +81,17 @@ def idt_copytree(src, dst):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
         if os.path.isdir(s):
-            shutil.copytree(s, d)
+            if not os.path.exists(d):
+                print("creating directory:", d)
+                os.makedirs(d)
+            print("copy tree:", s, d)
+            idt_copytree(s, d)
         else:
-            shutil.copy2(s, d)
+            shutil.copy(s, d)
 
 
-def separate_files_via_ma(from_root, to_root):
+def separate_files_via_ma_local(from_root, to_root):
+    kbro_so_dict = pmconst.kbro_so_dict
     print(from_root)
     print(to_root)
     devices = os.listdir(from_root)
@@ -95,6 +101,28 @@ def separate_files_via_ma(from_root, to_root):
             source_root = os.path.join(from_root, device)
             target_root = os.path.join(to_root, "ASRN9K")
             print(source_root, target_root)
+            so_names = os.listdir(source_root)
+            for a_so_name in so_names:
+                so_index = kbro_so_dict[a_so_name]
+                src = os.path.join(source_root, a_so_name)
+                dst = os.path.join(target_root, so_index, device)
+                if not os.path.exists(dst):
+                    os.makedirs(dst)
+                # todo actual copy from a folder to another
+                idt_copytree(src, dst)
+        elif device.upper() in ("CGNAT",):
+            source_root = os.path.join(from_root, device)
+            target_root = os.path.join(to_root, "CGNAT")
+            print(source_root, target_root)
+            so_names = os.listdir(source_root)
+            for a_so_name in so_names:
+                so_index = kbro_so_dict[a_so_name]
+                src = os.path.join(source_root, a_so_name)
+                dst = os.path.join(target_root, so_index, device)
+                if not os.path.exists(dst):
+                    os.makedirs(dst)
+                # todo actual copy from a folder to another
+                idt_copytree(src, dst)
         elif device.upper() in ("CBR8", "DTI", "RFGW", "UBR10K"):
             source_root = os.path.join(from_root, device)
             target_root = os.path.join(to_root, "CMTS")
@@ -111,6 +139,7 @@ def separate_files_via_ma(from_root, to_root):
                 # todo actual copy from a folder to another
                 idt_copytree(src, dst)
 
+
 if __name__ == "__main__":
     kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
     # kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
@@ -121,3 +150,40 @@ if __name__ == "__main__":
     # kbro_pm_xlsx_file_name = "KBRO PM-Upstream SNR-All.xlsx"
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     pm_execute_ops(kbro_pm_xlsx_file_name, str_time)
+
+
+# def separate_files_via_ma_local(from_root, to_root):
+#     kbro_so_dict = pmconst.kbro_so_dict
+#     print(from_root)
+#     print(to_root)
+#     devices = os.listdir(from_root)
+#     for device in devices:
+#         # print(device)
+#         if device.upper() in ("ASR",):
+#             source_root = os.path.join(from_root, device)
+#             target_root = os.path.join(to_root, "ASRN9K")
+#             print(source_root, target_root)
+#             so_names = os.listdir(source_root)
+#             for a_so_name in so_names:
+#                 so_index = kbro_so_dict[a_so_name]
+#                 src = os.path.join(source_root, a_so_name)
+#                 dst = os.path.join(target_root, so_index, device)
+#                 if not os.path.exists(dst):
+#                     os.makedirs(dst)
+#                 # todo actual copy from a folder to another
+#                 idt_copytree(src, dst)
+#         elif device.upper() in ("CBR8", "DTI", "RFGW", "UBR10K"):
+#             source_root = os.path.join(from_root, device)
+#             target_root = os.path.join(to_root, "CMTS")
+#             print(source_root, target_root)
+#             so_with_branches = os.listdir(source_root)
+#             for a_branch in so_with_branches:
+#                 leftp = a_branch.find("(")
+#                 so = a_branch[:leftp] if leftp>-1 else a_branch
+#                 src = os.path.join(source_root, a_branch)
+#                 dst = os.path.join(target_root, so, a_branch, device)
+#                 print(dst)
+#                 if not os.path.exists(dst):
+#                     os.makedirs(dst)
+#                 # todo actual copy from a folder to another
+#                 idt_copytree(src, dst)

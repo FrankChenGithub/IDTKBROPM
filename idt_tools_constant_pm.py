@@ -1,3 +1,4 @@
+import datetime
 import os
 from datetime import date
 import openpyxl
@@ -12,6 +13,12 @@ kbro_so_with_index = ['01_UC', '02_KP', '03_HC', '04_NTP', '05_BNT', '06_DA_DAWS
                       '12_YJL', '13_GVC', '14_UCT', '15_MCT', '16_FM', '17_NCC', '18_NT', '19_PHC', '20_PN', '21_RH',
                       '22_NTP_SI', '23_KS']
 
+kbro_so_dict = {"全聯": '01_UC',           "金頻道": '02_KP',  "振道": '03_HC',   "新台北": '04_NTP', "北桃園": '05_BNT',
+                "大安": '06_DA_DAWS',      "新唐城": '07_TC',  "大新店": '08_CG', "陽明山": '09_YMS', "LAB": '10_Lab',
+                "永佳樂": '12_YJL',        "觀天下": '13_GVC', "聯禾": '14_UCT',  "紅樹林":'15_MCT',  "豐盟": '16_FM',
+                "新頻道": '17_NCC',        "南天": '18_NT',    "鳳信": '19_PHC',  "屏南": '20_PN',    "瑞湖": '21_RH',
+                "新台北信義": '22_NTP_SI', "觀昇": '23_KS'}
+
 idt_domain = "idtech"
 citrix_dont_write_cmds = ["vtysh", "ter le 0", "exit", "shell"]
 n9k_dont_write_cmds = ["ter le 0", "ter len 0", "ter wi 511"]
@@ -19,6 +26,13 @@ n9k_dont_write_cmds = ["ter le 0", "ter len 0", "ter wi 511"]
 pm_xlsx_file_name = ""
 pm_user = "IDT_PM"
 pm_pw = "IDT_PM@123"
+
+quarter = (datetime.date.today().month-1)//3 + 1
+year = datetime.date.today().year
+str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+str_log = "LOG_{}".format(str_now)
+str_log_quarter = "LOG_{}_Q{}".format(year, quarter)
+
 
 
 class IPCOLUMN:

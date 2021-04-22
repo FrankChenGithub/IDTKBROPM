@@ -118,11 +118,11 @@ def setting_gui():
     pm_xlsx_ops.bind("<<ComboboxSelected>>", callback_ops_selected)
     y1 = 50
 
-    chk_copy = Checkbutton(top, text="複製定保檔案至伺服器相應目錄", variable=copy_pm_to_server, font=font_mid, fg='blue')
-    chk_copy.place(x=x0, y=y1)
+    # chk_copy = Checkbutton(top, text="複製定保檔案至伺服器相應目錄", variable=copy_pm_to_server, font=font_mid, fg='blue')
+    # chk_copy.place(x=x0, y=y1)
     y2 = 90
-    Label(top, text="伺服器路徑對應網路磁碟編碼:", font=font_mid).place(x=10, y=y2)
-    Entry(top, state=NORMAL, textvariable=driveid, width=4, font=font_mid).place(x=310, y=y2)
+    # Label(top, text="伺服器路徑對應網路磁碟編碼:", font=font_mid).place(x=10, y=y2)
+    # Entry(top, state=NORMAL, textvariable=driveid, width=4, font=font_mid).place(x=310, y=y2)
     btn_execute = Button(top, text="執行PM程式", command=callback_execute_pm, font=font_mid, bg='aqua', fg='red')
     btn_execute.place(x=440, y=y1)
     top.mainloop()
@@ -151,6 +151,7 @@ def callback_execute_pm():
             return
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     KBROPM2021.pm_execute_ops(xlsx_file, str_time)
+    KBROPM2021.separate_files_via_ma_local(idtconst.str_log, idtconst.str_log_quarter)
 
 
 def find_pm_xlsx_file_list():
