@@ -26,6 +26,12 @@ n9k_dont_write_cmds = ["ter le 0", "ter len 0", "ter wi 511"]
 pm_xlsx_file_name = ""
 pm_user = "IDT_PM"
 pm_pw = "IDT_PM@123"
+qb_user = "idt_tech"
+qb_pw = "IDT_tech"
+qb_viewer_user = "IDT_tech"
+qb_viewer_pw = "IDT_tech"
+qb_idrac_user = "idtech"
+qb_idrac_pw = "Idtech123!"
 
 quarter = (datetime.date.today().month-1)//3 + 1
 year = datetime.date.today().year
@@ -98,8 +104,12 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
             device_user = sheet_obj.cell(row=row, column=cols.device_user).value
             device_pw = sheet_obj.cell(row=row, column=cols.device_pw).value
             if device_user is None or len(device_user.strip()) == 0:
-                device_user = pm_user
-                device_pw = pm_pw
+                if device_type=="QB":
+                    device_user = qb_user
+                    device_pw = qb_pw
+                else:
+                    device_user = pm_user
+                    device_pw = pm_pw
             else:
                 device_user = device_user.strip()
                 if device_pw is None or len(device_pw.strip()) == 0:

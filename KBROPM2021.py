@@ -8,6 +8,7 @@ import socket
 import idt_tools_constant_pm as idtconst
 import idt_tools_pm as idtpm
 import idt_tools_citrix_netscaler as idtcrtrix
+import idt_tools_QB as idtQB
 import idt_tools_ssh as idtssh
 import idt_tools_constant_pm as pmconst
 
@@ -36,9 +37,9 @@ def pm_execute_ops(pm_xlsx_file_name, event_time, drive_letter=""):
                         if device_type.upper() == "CGNAT":
                             idtcrtrix.netscaler_log_text(device_ip, device_host, device_so, device_type, device_user,
                                                          device_pw, device_cmds, event_time)
-                        # elif device_type.upper() == "CGNATLSN":
-                        #     idtcrtrix.netscaler_show_lsn_session_worker(device_ip, device_host, device_so, device_type,
-                        #                                          device_user, device_pw, event_time)
+                        elif device_type.upper() == "QB":
+                            idtQB.dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user,
+                                                         device_pw, device_cmds, event_time)
                         elif device_type.upper() == "N9K":
                             idtssh.pm_ssh_n9k(device_ip, device_host, device_so, device_type, device_user, device_pw,
                                                     device_cmds, event_time)

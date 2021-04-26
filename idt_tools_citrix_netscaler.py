@@ -52,11 +52,17 @@ def netscaler_log_text(device_ip, device_host, device_so, device_type, device_us
     # todo 20210422 FrankChen 修改為LOG_YYYYmmDD_HHMM，並調整次目錄順序
     # folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
     # folder = os.path.join(idtconst.str_log, device_type, device_so)
-    folder = os.path.join(idtconst.str_log, device_type, device_so,  device_host)
+    folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
     if not os.path.exists(folder):
         os.makedirs(folder)
     netscaler_log_text_docx(folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime)
+    print("> netscaler_get_https_screenshot")
     netscaler_get_https_screenshot(folder, device_ip, device_host, device_so, device_type, device_user, device_pw)
+
+    # rename Citrix NetScaler - Dashboard.pdf
+    pdfs = [f for f in os.listdir(folder) if f[-3:].upper() == "PDF" and f.lower().find("dashboard") > -1]
+    if len(pdfs) > 0:
+        os.rename(os.path.join(folder, pdfs[0]), os.path.join(folder, "{}_{}_Dashboard.pdf".format(device_ip, device_host)))
 
 
 def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
@@ -69,7 +75,8 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     # folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
     # folder = os.path.join(idtconst.str_log, device_type, device_so)
     folder = device_log_folder
-    docx_file_name = "{}_{}_{}.docx".format(device_ip, xtime, device_host)
+    # docx_file_name = "{}_{}_{}.docx".format(device_ip, xtime, device_host)
+    docx_file_name = "{}_{}.docx".format(device_ip, device_host)
     docx_full_path = os.path.join(folder, docx_file_name)
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -283,55 +290,6 @@ def myexec_original(ssh, cmd, timeout, want_exitcode=False):
     return ''.join(stdout_chunks)
 
 
-def OLD_netscaler_get_https_screenshot(IP, HOST, SO, DEVICE, device_user, device_pw):
-    RFFOLDER = "LOG/%s/%s/%s" % (SO, DEVICE, HOST)
-    if not os.path.exists(RFFOLDER):
-        os.makedirs(RFFOLDER)
-
-    chromedriver = "chromedriver/chromedriver.exe"
-    # browser = webdriver.Chrome(chromedriver)
-    options = webdriver.ChromeOptions()
-    options.add_argument('ignore-certificate-errors')
-    # options.add_argument('--allow-outdated-plugins')
-    # for print to pdf
-    settings = {
-        "recentDestinations": [{
-            "id": "Save as PDF",
-            "origin": "local",
-            "account": "",
-        }],
-        "selectedDestinationId": "Save as PDF",
-        "version": 2
-    }
-    prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings)}
-
-    options.add_experimental_option('prefs', prefs)
-    options.add_argument('--kiosk-printing')
-
-    browser = webdriver.Chrome(chromedriver, chrome_options=options)
-    URL = "https://{}/menu/st".format(IP)
-    browser.get(URL)
-    browser.maximize_window()
-    elem = browser.find_element_by_id("username")
-    elem.send_keys(device_user)
-    elem = browser.find_element_by_name("password")
-    elem.send_keys(device_pw)
-    btn = browser.find_element_by_class_name('login_button')
-    # print(btn.text)
-    # btn = browser.find_element_by_id("url")
-    # print(btn.text)
-    btn.click()
-    time.sleep(20)
-    dashboard1 = "%s/dashboard1.png" % (RFFOLDER)
-    browser.get_screenshot_as_file(dashboard1)
-    # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
-    # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
-    browser.execute_script('window.print();')
-
-    browser.close()
-    browser.quit()
-
-
 def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user, device_pw):
     # RFFOLDER = os.path.join(os.getcwd(), "LOG/%s/%s/%s" % (SO, DEVICE, HOST))
     # RFFOLDER = os.path.join(idtconst.str_log, DEVICE, SO,  HOST)
@@ -358,9 +316,10 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
              'download.default_directory': RFFOLDER}
     options.add_experimental_option('prefs', prefs)
     options.add_argument('kiosk-printing')
-
+    print("prefs", prefs)
     browser = webdriver.Chrome(chromedriver, chrome_options=options)
     URL = "https://{}/menu/st".format(IP)
+    print("URL", URL)
     browser.get(URL)
     browser.maximize_window()
     elem = browser.find_element_by_id("username")
@@ -378,7 +337,6 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
     # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
     # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
     browser.execute_script('window.print();')
-
     browser.close()
     browser.quit()
 
@@ -390,3 +348,52 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
 #                 "isLandscapeEnabled": False,
 #                 "scalingType": 3,
 #                 "scaling": "141"}
+
+
+# def OLD_netscaler_get_https_screenshot(IP, HOST, SO, DEVICE, device_user, device_pw):
+#     RFFOLDER = "LOG/%s/%s/%s" % (SO, DEVICE, HOST)
+#     if not os.path.exists(RFFOLDER):
+#         os.makedirs(RFFOLDER)
+#
+#     chromedriver = "chromedriver/chromedriver.exe"
+#     # browser = webdriver.Chrome(chromedriver)
+#     options = webdriver.ChromeOptions()
+#     options.add_argument('ignore-certificate-errors')
+#     # options.add_argument('--allow-outdated-plugins')
+#     # for print to pdf
+#     settings = {
+#         "recentDestinations": [{
+#             "id": "Save as PDF",
+#             "origin": "local",
+#             "account": "",
+#         }],
+#         "selectedDestinationId": "Save as PDF",
+#         "version": 2
+#     }
+#     prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings)}
+#
+#     options.add_experimental_option('prefs', prefs)
+#     options.add_argument('--kiosk-printing')
+#
+#     browser = webdriver.Chrome(chromedriver, chrome_options=options)
+#     URL = "https://{}/menu/st".format(IP)
+#     browser.get(URL)
+#     browser.maximize_window()
+#     elem = browser.find_element_by_id("username")
+#     elem.send_keys(device_user)
+#     elem = browser.find_element_by_name("password")
+#     elem.send_keys(device_pw)
+#     btn = browser.find_element_by_class_name('login_button')
+#     # print(btn.text)
+#     # btn = browser.find_element_by_id("url")
+#     # print(btn.text)
+#     btn.click()
+#     time.sleep(20)
+#     dashboard1 = "%s/dashboard1.png" % (RFFOLDER)
+#     browser.get_screenshot_as_file(dashboard1)
+#     # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
+#     # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
+#     browser.execute_script('window.print();')
+#
+#     browser.close()
+#     browser.quit()
