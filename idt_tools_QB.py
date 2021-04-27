@@ -32,7 +32,7 @@ def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, devi
     if not os.path.exists(folder):
         os.makedirs(folder)
     # output to document
-    # netscaler_log_text_docx(folder, device_ip1, device_host, device_so, device_type, device_user, device_pw, cmds, xtime)
+    netscaler_log_text_docx(folder, device_ip1, device_host, device_so, device_type, device_user, device_pw, cmds, xtime)
     # output to log
     qb_dell_log_and_config_txts(folder, device_ip1, device_host, device_so, device_type, device_user,
                                 device_pw, cmds, xtime)
@@ -75,10 +75,16 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
 
 
 def write_command_to_txt(file_name, cmd, lines):
-    with open(file_name, mode="a") as fobj:
+    write_start = False
+    if not os.path.exists(file_name):
+        write_start = True
+    with open(file_name, mode="a") as file_obj:
+        if write_start:
+            file_obj.write("[START] @ " + datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") + "\n")
+        file_obj.write("\n" + "#" + cmd + "\n")
         for line_idx, line in enumerate(lines):
             if len(line.strip()) > 0:
-                fobj.write(line.rstrip() + "\n")
+                file_obj.write(line.rstrip() + "\n")
 
 
 def qb_dell_log_and_config_txts(device_log_folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
@@ -122,6 +128,7 @@ def qb_dell_log_and_config_txts(device_log_folder, device_ip, device_host, devic
                 write_command_to_txt(config_full_path, cmd, output)
             else:
                 write_command_to_txt(log_full_path, cmd, output)
+            print(ssh_stderr.readlines())
     ssh.close()
 
 
@@ -162,7 +169,7 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
             # doc.add_heading(text=cmd, level=1)
             # header = doc.add_paragraph(cmd)
             netscaler_write_command_to_docx(doc, cmd, output)
-            # print(ssh_stderr)
+            # print(ssh_stderr.readlines())
             doc.save(docx_full_path)
     ssh.close()
 
@@ -209,11 +216,11 @@ def qb_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
     # print(btn.text)
     btn.click()
     time.sleep(10)
-    dashboard1 = "%s/dashboard1.png" % (RFFOLDER)
+    dashboard1 = "{}/{}_{}_viewer.png".format(RFFOLDER, IP, HOST)
     browser.get_screenshot_as_file(dashboard1)
     # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
     # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
-    browser.execute_script('window.print();')
+    # browser.execute_script('window.print();')
     browser.close()
     browser.quit()
 
@@ -236,8 +243,7 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
                     "version": 2,
                     "isHeaderFooterEnabled": True,
                     "isLandscapeEnabled": False,
-                    "scalingType": 3,
-                    "scaling": "72"}
+                    "scalingType": 3, "scaling": "72"}
         prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(appState),
                  'savefile.default_directory': RFFOLDER,
                  'download.default_directory': RFFOLDER}
@@ -265,15 +271,12 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
         actionChains_pw.move_to_element(elem_pw).send_keys(device_pw, Keys.RETURN).perform()
         print("pw key sent")
 
-        # elem.send_keys(device_pw)
-        # btn = browser.find_element_by_class_name('btnOK')
-        # browser.find_element_by_link_text("Summit").Click()
-        time.sleep(10)
-        dashboard1 = "%s/idrac.png" % (RFFOLDER)
+        time.sleep(15)
+        dashboard1 = "{}/{}_{}_idrac.png".format(RFFOLDER, IP, HOST)
         browser.get_screenshot_as_file(dashboard1)
         # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
         # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
-        browser.execute_script('window.print();')
+        # browser.execute_script('window.print();')
         browser.close()
         browser.quit()
     except Exception as ex:
