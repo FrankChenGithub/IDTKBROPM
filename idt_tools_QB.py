@@ -249,7 +249,7 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
                  'download.default_directory': RFFOLDER}
         options.add_experimental_option('prefs', prefs)
         options.add_argument('kiosk-printing')
-        options.add_argument("--lang=en")
+        # options.add_argument("--lang=en")
 
         browser = webdriver.Chrome(chromedriver, chrome_options=options)
         # URL = "https://{}/menu/st".format(IP)
@@ -271,7 +271,7 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
         actionChains_pw.move_to_element(elem_pw).send_keys(device_pw, Keys.RETURN).perform()
         print("pw key sent")
 
-        time.sleep(15)
+        time.sleep(25)
         dashboard1 = "{}/{}_{}_idrac.png".format(RFFOLDER, IP, HOST)
         browser.get_screenshot_as_file(dashboard1)
         # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)

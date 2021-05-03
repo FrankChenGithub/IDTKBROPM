@@ -10,12 +10,15 @@ from tkinter import messagebox
 from tkinter.ttk import Combobox
 import idt_tools_general_pm as idtgen
 import idt_tools_constant_pm as idtconst
-import KBROPM2021
+# import KBROPM2021
 import idt_AES_CBC_Encrypt_Decrypt as idtauthen
+import home_plus_pm_tools as idttools
 
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
-APP_NAME = "凱擘系統 定保工具"
+
+APP_OWNER = "HOMEPLUS"
+APP_NAME = "{}  (中嘉系統)  定保工具".format(APP_OWNER)
 APP_VERSION = "2021-05-03版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
@@ -42,13 +45,7 @@ userid = StringVar(value="frankchen")
 password = StringVar(value="")
 driveid = StringVar(value="M")
 copy_pm_to_server = IntVar(value=0)
-kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
-# kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
-# kbro_pm_xlsx_file_name = "KBRO PM_20201102_JOY.xlsx"
-# kbro_pm_xlsx_file_name = "KBRO PM_20210125_CGNAT.xlsx"
-# kbro_pm_xlsx_file_name = 'KBRO PM_20210201_SSH_N9K.xlsx'
-# 傅星霖的多command
-# kbro_pm_xlsx_file_name = "KBRO PM-Upstream SNR-All.xlsx"
+# kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
 
 
 def check_authentication(proc_name):
@@ -94,8 +91,6 @@ def write_operation(ops):
 
 def init():
     global work_dir
-    global cbr8_unique_list
-    global cbr8_info_list
     global folder_log
     global execution_log_path
 
@@ -150,8 +145,8 @@ def callback_execute_pm():
         else:
             return
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    KBROPM2021.pm_execute_ops(xlsx_file, str_time)
-    KBROPM2021.separate_files_via_ma_local(idtconst.str_log, idtconst.str_log_quarter)
+    idttools.pm_execute_homeplus(xlsx_file, str_time)
+    # KBROPM2021.separate_files_via_ma_local(idtconst.str_log, idtconst.str_log_quarter)
 
 
 def find_pm_xlsx_file_list():

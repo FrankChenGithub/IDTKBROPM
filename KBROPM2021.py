@@ -98,9 +98,10 @@ def separate_files_via_ma_local(from_root, to_root):
     devices = os.listdir(from_root)
     for device in devices:
         # print(device)
-        if device.upper() in ("ASR",):
+        if device.upper() in ("ASR", "CGNAT"):
             source_root = os.path.join(from_root, device)
-            target_root = os.path.join(to_root, "ASRN9K")
+            to_folder_name = "ASRN9K" if device.upper() == "ASR" else device.upper()
+            target_root = os.path.join(to_root, to_folder_name)
             print(source_root, target_root)
             so_names = os.listdir(source_root)
             for a_so_name in so_names:
@@ -111,15 +112,14 @@ def separate_files_via_ma_local(from_root, to_root):
                     os.makedirs(dst)
                 # todo actual copy from a folder to another
                 idt_copytree(src, dst)
-        elif device.upper() in ("CGNAT",):
+        elif device.upper() in ("QB",):
             source_root = os.path.join(from_root, device)
-            target_root = os.path.join(to_root, "CGNAT")
+            target_root = os.path.join(to_root, "QB")
             print(source_root, target_root)
             so_names = os.listdir(source_root)
             for a_so_name in so_names:
-                so_index = kbro_so_dict[a_so_name]
                 src = os.path.join(source_root, a_so_name)
-                dst = os.path.join(target_root, so_index, device)
+                dst = os.path.join(target_root, a_so_name)
                 if not os.path.exists(dst):
                     os.makedirs(dst)
                 # todo actual copy from a folder to another
@@ -143,48 +143,14 @@ def separate_files_via_ma_local(from_root, to_root):
 
 if __name__ == "__main__":
     kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
-    # kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
-    # kbro_pm_xlsx_file_name = "KBRO PM_20201102_JOY.xlsx"
-    # kbro_pm_xlsx_file_name = "KBRO PM_20210125_CGNAT.xlsx"
-    # kbro_pm_xlsx_file_name = 'KBRO PM_20210201_SSH_N9K.xlsx'
-    # 傅星霖的多command
-    # kbro_pm_xlsx_file_name = "KBRO PM-Upstream SNR-All.xlsx"
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     pm_execute_ops(kbro_pm_xlsx_file_name, str_time)
 
 
-# def separate_files_via_ma_local(from_root, to_root):
-#     kbro_so_dict = pmconst.kbro_so_dict
-#     print(from_root)
-#     print(to_root)
-#     devices = os.listdir(from_root)
-#     for device in devices:
-#         # print(device)
-#         if device.upper() in ("ASR",):
-#             source_root = os.path.join(from_root, device)
-#             target_root = os.path.join(to_root, "ASRN9K")
-#             print(source_root, target_root)
-#             so_names = os.listdir(source_root)
-#             for a_so_name in so_names:
-#                 so_index = kbro_so_dict[a_so_name]
-#                 src = os.path.join(source_root, a_so_name)
-#                 dst = os.path.join(target_root, so_index, device)
-#                 if not os.path.exists(dst):
-#                     os.makedirs(dst)
-#                 # todo actual copy from a folder to another
-#                 idt_copytree(src, dst)
-#         elif device.upper() in ("CBR8", "DTI", "RFGW", "UBR10K"):
-#             source_root = os.path.join(from_root, device)
-#             target_root = os.path.join(to_root, "CMTS")
-#             print(source_root, target_root)
-#             so_with_branches = os.listdir(source_root)
-#             for a_branch in so_with_branches:
-#                 leftp = a_branch.find("(")
-#                 so = a_branch[:leftp] if leftp>-1 else a_branch
-#                 src = os.path.join(source_root, a_branch)
-#                 dst = os.path.join(target_root, so, a_branch, device)
-#                 print(dst)
-#                 if not os.path.exists(dst):
-#                     os.makedirs(dst)
-#                 # todo actual copy from a folder to another
-#                 idt_copytree(src, dst)
+# kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
+# kbro_pm_xlsx_file_name = "KBRO PM_20201102_JOY.xlsx"
+# kbro_pm_xlsx_file_name = "KBRO PM_20210125_CGNAT.xlsx"
+# kbro_pm_xlsx_file_name = 'KBRO PM_20210201_SSH_N9K.xlsx'
+# 傅星霖的多command
+# kbro_pm_xlsx_file_name = "KBRO PM-Upstream SNR-All.xlsx"
+

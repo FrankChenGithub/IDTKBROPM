@@ -341,6 +341,46 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
     browser.quit()
 
 
+def netscaler_show_lsn_client(device_ip, device_user, device_pw):
+    if device_user == "" and device_pw == "":
+        print("FRANK no row_id, row_pw used default")
+        ID = idtconst.pm_user
+        PW = idtconst.pm_pw
+
+    folder = os.path.join(os.getcwd(), "LOG/%s/" % (device_ip))
+    log_file_name = "LSN_{}.csv"
+    log_full_path = os.path.join(folder, log_file_name)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(device_ip,
+                username=device_user,
+                password=device_pw,
+                look_for_keys=False)
+    timeout = 7200
+    cmd1 = "sh lsn client"
+    cmd2 = "show lsn deterministicNat -clientname {}"
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd1)
+    clients = ssh_stdout.readlines()
+    print(clients)
+    for client in clients:
+        client_info = client.split()
+        if len(client_info) > 1:
+            cmd_nat = cmd2.format(client_info[-1])
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_nat)
+            client_nats = ssh_stdout.readlines()
+            client_csv = log_file_name.format(client_info[-1])
+            client_csv_full = os.path.join(folder, client_csv)
+            with open(client_csv_full, mode="a") as client_csv_file:
+                client_csv_file.writelines(client_nats)
+
+    ssh.close()
+
+
+
 # appState = {"recentDestinations": [{"id": "Save as PDF", "origin": "local", "account": ""}],
 #                 "selectedDestinationId": "Save as PDF",
 #                 "version": 2,

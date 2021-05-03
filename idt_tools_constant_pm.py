@@ -26,6 +26,8 @@ n9k_dont_write_cmds = ["ter le 0", "ter len 0", "ter wi 511"]
 pm_xlsx_file_name = ""
 pm_user = "IDT_PM"
 pm_pw = "IDT_PM@123"
+cgnat_user = "citrix_pm"
+cgnat_pw = "citrix_pm@123"
 qb_user = "idt_tech"
 qb_pw = "IDT_tech"
 qb_viewer_user = "IDT_tech"
@@ -33,13 +35,12 @@ qb_viewer_pw = "IDT_tech"
 qb_idrac_user = "idtech"
 qb_idrac_pw = "Idtech123!"
 
+
 quarter = (datetime.date.today().month-1)//3 + 1
 year = datetime.date.today().year
 str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 str_log = "LOG_{}".format(str_now)
 str_log_quarter = "LOG_{}_Q{}".format(year, quarter)
-
-
 
 class IPCOLUMN:
     device_ip = 1
@@ -104,12 +105,59 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
             device_user = sheet_obj.cell(row=row, column=cols.device_user).value
             device_pw = sheet_obj.cell(row=row, column=cols.device_pw).value
             if device_user is None or len(device_user.strip()) == 0:
-                if device_type=="QB":
+                if device_type.upper() == "QB":
                     device_user = qb_user
                     device_pw = qb_pw
+                elif device_type.upper() == "CNGAT":
+                    device_user = cgnat_user
+                    device_pw = cgnat_pw
                 else:
                     device_user = pm_user
                     device_pw = pm_pw
+            else:
+                device_user = device_user.strip()
+                if device_pw is None or len(device_pw.strip()) == 0:
+                    device_pw = ""
+            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw])
+    wb_obj.close()
+    return pm_ip_list
+
+
+def get_ips_via_excel_homeplus(the_pm_xlsx_file_name, sheet_name_ip="IP"):
+    global pm_xlsx_file_name
+    pm_xlsx_file_name =the_pm_xlsx_file_name
+    if not os.path.isfile(the_pm_xlsx_file_name):
+        return False
+    wb_obj = openpyxl.load_workbook(the_pm_xlsx_file_name)
+    try:
+        sheet_obj = wb_obj.get_sheet_by_name(sheet_name_ip)
+    except:
+        print("No sheet in [{0}] named {1}".format(the_pm_xlsx_file_name, sheet_name_ip))
+        return False
+
+    cols = IPCOLUMN()
+    pm_ip_list = []
+    # today = date.today()
+    # print("Today's date:", today, today.month, today.day)
+    max_row = sheet_obj.max_row
+    max_column = sheet_obj.max_column
+    print("get_ips_via_excel_file: (max_row, max_column)", max_row, max_column)
+    for row in range(2, max_row + 1):
+        device_ip = sheet_obj.cell(row=row, column=cols.device_ip).value
+        if device_ip is None or len(device_ip.strip()) == 0:
+            continue
+        else:
+            device_ip = device_ip.strip()
+            device_host = sheet_obj.cell(row=row, column=cols.device_host).value
+            device_host = "無名" if device_host is None else device_host.strip()
+            device_so = sheet_obj.cell(row=row, column=cols.device_so).value.strip()
+            device_type = sheet_obj.cell(row=row, column=cols.device_type).value.strip()
+            device_user = sheet_obj.cell(row=row, column=cols.device_user).value
+            device_pw = sheet_obj.cell(row=row, column=cols.device_pw).value
+            # todo 對中嘉(沒有TACAS)而言: device_user=第一層密碼, device_pw=第二層密碼
+            if device_user is None or len(device_user.strip()) == 0:
+                device_user = ""
+                device_pw = ""
             else:
                 device_user = device_user.strip()
                 if device_pw is None or len(device_pw.strip()) == 0:
