@@ -7,7 +7,7 @@ import paramiko
 import select
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
-from docx.shared import RGBColor
+from docx.shared import RGBColor, Pt
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
 
@@ -25,7 +25,8 @@ cmdX = [
         "exit",
         "shell"]
 
-def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
+
+def OLD_dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
     device_ip1 = device_ip.split(",")[0].strip()
     device_ip2 = device_ip.split(",")[-1].strip()
     folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
@@ -47,6 +48,131 @@ def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, devi
     #     os.rename(os.path.join(folder, pdfs[0]), os.path.join(folder, "{}_{}_Dashboard.pdf".format(device_ip, device_host)))
 
 
+def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
+    device_ip1 = device_ip.split(",")[0].strip()
+    device_ip2 = device_ip.split(",")[-1].strip()
+    folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    print(device_ip1, device_ip2, folder)
+    # output to document and txt
+    fiel_prefix = "{} QB200檢查報告".format(device_so)
+    qb_log_and_config_txts_and_word(folder, fiel_prefix, device_ip1, device_host, device_so, device_type, device_user,
+                                    device_pw, cmds, xtime)
+
+    qb_get_https_screenshot(folder, fiel_prefix, device_ip1, device_host, device_so, device_type, device_user, device_pw)
+    device_idrac_user = "idtech"
+    device_idrac_pw = "Idtech123!"
+    qb_get_idrac_screenshot(folder, fiel_prefix, device_ip2, device_host, device_so, device_type, device_idrac_user, device_idrac_pw)
+
+
+def qb_log_and_config_txts_and_word(device_log_folder, file_prefix, device_ip, device_host, device_so, device_type,
+                                    device_user, device_pw, cmds, xtime):
+    doc = Document()
+    print("test")
+    str_time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    print(str_time)
+    # title = "{} QB200檢查報告".format(device_so)
+    title = file_prefix
+    begin_time = "[BEGIN] {}".format(str_time)
+    print(title, begin_time)
+    netscaler_docx_add_highlighted_paragraph_line(doc, title, "Courier New", 12, True)
+    print(title)
+    netscaler_docx_add_highlighted_paragraph_line(doc, begin_time, "Courier New", 10, False)
+    print("qb_dell_log_and_config_txts(", device_log_folder, device_ip, device_host, device_so, device_type,
+          device_user, device_pw, cmds, xtime, ")")
+    if device_user == "" and device_pw == "":
+        print("FRANK no row_id, row_pw used default")
+        if device_type == "QB":
+            device_user = idtconst.qb_user
+            device_pw = idtconst.qb_pw
+        else:
+            device_user = idtconst.pm_user
+            device_pw = idtconst.pm_pw
+
+    folder = device_log_folder
+    # word document related
+    # docx_file_name = "{}_{}.docx".format(device_ip, device_host)
+    docx_file_name = "{}({}).docx".format(file_prefix, device_host)
+    docx_full_path = os.path.join(folder, docx_file_name)
+    # log file related
+    # log_file_name = "{}_{}.txt".format(device_ip, device_host)
+    # config_file_name = "{}_{}_config.txt".format(device_ip, device_host)
+    log_file_name = "{}({})_log.txt".format(file_prefix, device_host)
+    config_file_name = "{}({})_config.txt".format(file_prefix, device_host)
+    log_full_path = os.path.join(folder, log_file_name)
+    config_full_path = os.path.join(folder, config_file_name)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    print("starting ssh", cmds)
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(device_ip,
+                username=device_user,
+                password=device_pw,
+                look_for_keys=False)
+
+    print("ssh connected:", cmds)
+    for cmd_idx, cmd in enumerate(cmds):
+        print(cmd_idx, cmd)
+        to_word = False
+        if cmd[0] == "*":
+            cmd = cmd[1:]
+            to_word = True
+        print(cmd_idx, to_word, cmd)
+
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
+        if cmd in cmdX:
+            pass
+        else:
+            output = ssh_stdout.readlines()
+            if to_word:
+                netscaler_write_command_to_docx(doc, cmd, output)
+                doc.save(docx_full_path)
+            if cmd == "show running-config | nomore":
+                write_command_to_txt(config_full_path, cmd, output)
+            else:
+                write_command_to_txt(log_full_path, cmd, output)
+            print(ssh_stderr.readlines())
+    str_time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    end_time = "[END] {}".format(str_time)
+    netscaler_docx_add_highlighted_paragraph_line(doc, end_time, "Courier New", 10, False)
+    doc.save(docx_full_path)
+    ssh.close()
+
+
+def netscaler_title_to_docx(doc, title, lines):
+    first_line = True
+    paragraph = doc.add_paragraph()
+    header = paragraph.add_run()
+    header.add_text(title)
+    header.bold = True
+    header.font.color.rgb = RGBColor(0x00, 0x00, 0xff)
+    header.font.size = Pt(20)
+    header.font.highlight_color = WD_COLOR_INDEX.YELLOW
+    header.add_break()
+    a_run = paragraph.add_run()
+    a_run.font.size = Pt(16)
+    a_run.font.name = 'Courier New'
+    for line_idx, line in enumerate(lines):
+        if line.strip() != "Done":
+            a_run.add_text(line.lstrip())
+            a_run.add_break()
+
+
+def netscaler_docx_add_highlighted_paragraph_line(doc, a_line, font_name, font_size, is_bold):
+    first_line = True
+    paragraph = doc.add_paragraph()
+    header = paragraph.add_run()
+    header.add_text(a_line)
+    header.bold = is_bold
+    header.font.color.rgb = RGBColor(0x00, 0x00, 0xff)
+    header.font.size = Pt(font_size)
+    header.font.name = font_name
+    header.font.highlight_color = WD_COLOR_INDEX.YELLOW
+
+
 def netscaler_write_command_to_docx(doc, cmd, lines):
     first_line = True
     paragraph = doc.add_paragraph()
@@ -57,6 +183,8 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
     header.font.highlight_color = WD_COLOR_INDEX.YELLOW
     header.add_break()
     a_run = paragraph.add_run()
+    a_run.font.size = Pt(10)
+    a_run.font.name = 'Courier New'
     for line_idx, line in enumerate(lines):
         if line.strip() != "Done":
             a_run.add_text(line.lstrip())
@@ -137,11 +265,11 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
         if device_type == "QB":
-            ID = idtconst.qb_user
-            PW = idtconst.qb_pw
+            device_user = idtconst.qb_user
+            device_pw = idtconst.qb_pw
         else:
-            ID = idtconst.pm_user
-            PW = idtconst.pm_pw
+            device_user = idtconst.pm_user
+            device_pw = idtconst.pm_pw
 
     folder = device_log_folder
     # docx_file_name = "{}_{}_{}.docx".format(device_ip, xtime, device_host)
@@ -174,7 +302,7 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     ssh.close()
 
 
-def qb_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user, device_pw):
+def qb_get_https_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw):
     # RFFOLDER = os.path.join(os.getcwd(), "LOG/%s/%s/%s" % (SO, DEVICE, HOST))
     # RFFOLDER = os.path.join(idtconst.str_log, DEVICE, SO,  HOST)
     RFFOLDER = device_log_folder
@@ -203,7 +331,7 @@ def qb_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
 
     browser = webdriver.Chrome(chromedriver, chrome_options=options)
     # URL = "https://{}/menu/st".format(IP)
-    URL = "http://{}/login/client/login/?next=/m/client/system/&appId=mng".format(IP)
+    URL = "http://{}/login/client/login/?next=/m/client/system/&appId=mng".format(device_ip)
     browser.get(URL)
     browser.maximize_window()
     elem = browser.find_element_by_id("username")
@@ -216,7 +344,9 @@ def qb_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
     # print(btn.text)
     btn.click()
     time.sleep(10)
-    dashboard1 = "{}/{}_{}_viewer.png".format(RFFOLDER, IP, HOST)
+    file_png = "{}_viewer.png".format(file_prefix)
+    dashboard1 = os.path.join(RFFOLDER, file_png)
+    # dashboard1 = "{}/{}_{}_viewer.png".format(RFFOLDER, IP, HOST)
     browser.get_screenshot_as_file(dashboard1)
     # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
     # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)
@@ -225,7 +355,7 @@ def qb_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
     browser.quit()
 
 
-def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user, device_pw):
+def qb_get_idrac_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw):
     try:
         RFFOLDER = device_log_folder
         if not os.path.exists(RFFOLDER):
@@ -253,7 +383,7 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
 
         browser = webdriver.Chrome(chromedriver, chrome_options=options)
         # URL = "https://{}/menu/st".format(IP)
-        URL = "https://{}/login.html".format(IP)
+        URL = "https://{}/login.html".format(device_ip)
         browser.get(URL)
         browser.maximize_window()
         time.sleep(5)
@@ -272,7 +402,9 @@ def qb_get_idrac_screenshot(device_log_folder, IP, HOST, SO, DEVICE, device_user
         print("pw key sent")
 
         time.sleep(25)
-        dashboard1 = "{}/{}_{}_idrac.png".format(RFFOLDER, IP, HOST)
+        file_png = "{}_idrac.png".format(file_prefix)
+        dashboard1 = os.path.join(RFFOLDER, file_png)
+        # dashboard1 = "{}/{}_{}_idrac.png".format(RFFOLDER, IP, HOST)
         browser.get_screenshot_as_file(dashboard1)
         # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
         # browser.find_element_by_class_name('ns_body').screenshot(dashboard2)

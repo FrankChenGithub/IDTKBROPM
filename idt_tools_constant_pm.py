@@ -51,6 +51,16 @@ class IPCOLUMN:
     device_pw = 6
 
 
+class HomePlus_IPCOLUMN:
+    device_ip = 1
+    device_host = 2
+    device_so = 3
+    device_type = 4
+    device_user = 5
+    device_pw1 = 6
+    device_pw2 = 7
+
+
 def get_device_cmds_via_excel_file(device_type, kbro_pm_xlsx_file_name='KBRO PM.xlsx'):
     device_cmds = []
     if not os.path.isfile(kbro_pm_xlsx_file_name):
@@ -123,6 +133,7 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
     return pm_ip_list
 
 
+
 def get_ips_via_excel_homeplus(the_pm_xlsx_file_name, sheet_name_ip="IP"):
     global pm_xlsx_file_name
     pm_xlsx_file_name =the_pm_xlsx_file_name
@@ -135,7 +146,7 @@ def get_ips_via_excel_homeplus(the_pm_xlsx_file_name, sheet_name_ip="IP"):
         print("No sheet in [{0}] named {1}".format(the_pm_xlsx_file_name, sheet_name_ip))
         return False
 
-    cols = IPCOLUMN()
+    cols = HomePlus_IPCOLUMN()
     pm_ip_list = []
     # today = date.today()
     # print("Today's date:", today, today.month, today.day)
@@ -153,15 +164,19 @@ def get_ips_via_excel_homeplus(the_pm_xlsx_file_name, sheet_name_ip="IP"):
             device_so = sheet_obj.cell(row=row, column=cols.device_so).value.strip()
             device_type = sheet_obj.cell(row=row, column=cols.device_type).value.strip()
             device_user = sheet_obj.cell(row=row, column=cols.device_user).value
-            device_pw = sheet_obj.cell(row=row, column=cols.device_pw).value
+            device_pw1 = sheet_obj.cell(row=row, column=cols.device_pw1).value
+            device_pw2 = sheet_obj.cell(row=row, column=cols.device_pw2).value
             # todo 對中嘉(沒有TACAS)而言: device_user=第一層密碼, device_pw=第二層密碼
             if device_user is None or len(device_user.strip()) == 0:
                 device_user = ""
-                device_pw = ""
+                device_pw1 = ""
+                device_pw2 = ""
             else:
                 device_user = device_user.strip()
-                if device_pw is None or len(device_pw.strip()) == 0:
-                    device_pw = ""
-            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw])
+                if device_pw1 is None or len(device_pw1.strip()) == 0:
+                    device_pw1 = ""
+                if device_pw2 is None or len(device_pw2.strip()) == 0:
+                    device_pw2 = ""
+            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw1, device_pw2])
     wb_obj.close()
     return pm_ip_list

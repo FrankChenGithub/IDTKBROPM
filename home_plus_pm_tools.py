@@ -19,11 +19,11 @@ def pm_execute_homeplus(pm_xlsx_file_name, event_time):
     print("event_time", event_time)
     for ip_idx, ip_info in enumerate(pm_ip_list):
         print(ip_info)
-        [device_ip, device_host, device_so, device_type, device_user, device_pw] = ip_info
+        [device_ip, device_host, device_so, device_type, device_user, device_pw1, device_pw2] = ip_info
         str_ip_info = ",".join(ip_info) + "\n"
         try:
             start_time = datetime.datetime.now()
-            print(ip_idx, device_ip, device_host, device_so, device_host, device_user, device_pw)
+            print(ip_idx, device_ip, device_host, device_so, device_host, device_user, device_pw1, device_pw2)
             print(device_ip, "start@", start_time)
             device_cmds = idtconst.get_device_cmds_via_excel_file(device_type, pm_xlsx_file_name)
             if len(device_cmds) > 0:
@@ -43,12 +43,13 @@ def pm_execute_homeplus(pm_xlsx_file_name, event_time):
                     # idtssh.pm_ssh_n9k(device_ip, device_host, device_so, device_type, device_user, device_pw,
                     #                         device_cmds, event_time)
                 elif device_type.upper() == "CBR8":
-                    telnet_ops_command_suite(work_dir, event_time, device_type, device_ip, device_user, device_pw, device_cmds)
+                    telnet_ops_command_suite(work_dir, event_time, device_host, device_type, device_ip, device_user,
+                                             device_pw1, device_pw2, device_cmds)
                     # telnet_ops_command_suite(device_ip, device_host, device_so, device_type, device_user, device_pw,
                     #                  device_cmds)
                 else:
-                    telnet_ops_command_suite(device_ip, device_host, device_so, device_type, device_user, device_pw,
-                                     device_cmds)
+                    telnet_ops_command_suite(work_dir, event_time, device_host, device_type, device_ip, device_user,
+                                             device_pw1, device_pw2, device_cmds)
                 print("total time of row", ip_idx, (datetime.datetime.now() - start_time).total_seconds())
             else:
                 f = open(fail_log_file, "w+")
@@ -80,7 +81,7 @@ def pm_execute_homeplus(pm_xlsx_file_name, event_time):
             f.close()
 
 
-def telnet_ops_command_suite(work_dir, event_time, device, ip, pw1, pw2, show_cmds):
+def telnet_ops_command_suite(work_dir, event_time, host, device, ip, username, pw1, pw2, show_cmds):
     succeeded = True
     try:
         if ip == "N/A":
@@ -89,10 +90,13 @@ def telnet_ops_command_suite(work_dir, event_time, device, ip, pw1, pw2, show_cm
         print("----telnetinfo-----", work_dir, event_time, device, ip, pw1, pw2)
         start_time = datetime.datetime.now()
         print("telnet_so_ops_command_suite @", start_time)
-        file_name = device + "(" + ip + ")_" + event_time + ".txt"
+        file_name = device + "(" + host + ")_" + event_time + ".txt"
         full_file_path = os.path.join(work_dir, file_name)
         telnet = telnetlib.Telnet(ip, port=23, timeout=900)
         print("telneted:", (datetime.datetime.now() - start_time).total_seconds())
+        telnet.read_until(b'sername: ', 3)
+        print("Username:", (datetime.datetime.now() - start_time).total_seconds())
+        telnet.write(username.encode('ascii') + b"\r\n")
         telnet.read_until(b'assword: ', 3)
         print("Password1:", (datetime.datetime.now() - start_time).total_seconds())
         telnet.write(pw1.encode('ascii') + b"\r\n")
@@ -127,7 +131,7 @@ def telnet_ops_command_suite(work_dir, event_time, device, ip, pw1, pw2, show_cm
         # TODO 20200914 也許是這個byte > string 的decode在慢
         print("回傳資料及解碼(ascii > utf8) @", datetime.datetime.now())
         data = telnet.read_all().decode('ascii')
-        print(data)
+        # print(data)
         print("回傳資料及解碼(ascii > utf8) 結束 @", (datetime.datetime.now() - start_time).total_seconds())
         if not os.path.isdir(work_dir):
             os.makedirs(work_dir)

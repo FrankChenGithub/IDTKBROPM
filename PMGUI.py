@@ -16,7 +16,7 @@ import idt_AES_CBC_Encrypt_Decrypt as idtauthen
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-05-03版"
+APP_VERSION = "2021-05-06版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 

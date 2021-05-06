@@ -19,7 +19,7 @@ title_loginned = "{}: {} (登入為:{}-)"
 
 APP_OWNER = "HOMEPLUS"
 APP_NAME = "{}  (中嘉系統)  定保工具".format(APP_OWNER)
-APP_VERSION = "2021-05-03版"
+APP_VERSION = "2021-05-04版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 
@@ -105,21 +105,22 @@ def setting_gui():
     top.geometry("600x140")
     top.title('{}({})'.format(APP_NAME, APP_VERSION))
     [x0, y0] = [10, 10]
-    Label(top, text="PM XLSX:", font=font_mid).place(x=x0, y=y0)
+    Label(top, text="中嘉系統 (HOME PLUS) PM XLSX:", font=font_mid).place(x=x0, y=y0)
     pm_xlsx_ops = Combobox(top, state="readonly", width=36, name="ops_chosen", font=font_mid,
                            textvariable=xlsx_ops_sel)
-    pm_xlsx_ops.place(x=x0+120, y=y0)
+    y1 = y0 + 40
+    pm_xlsx_ops.place(x=x0, y=y1)
     pm_xlsx_ops['value'] = xlsx_ops
     pm_xlsx_ops.bind("<<ComboboxSelected>>", callback_ops_selected)
-    y1 = 50
+
 
     # chk_copy = Checkbutton(top, text="複製定保檔案至伺服器相應目錄", variable=copy_pm_to_server, font=font_mid, fg='blue')
     # chk_copy.place(x=x0, y=y1)
-    y2 = 90
+    y2 = y1 + 40
     # Label(top, text="伺服器路徑對應網路磁碟編碼:", font=font_mid).place(x=10, y=y2)
     # Entry(top, state=NORMAL, textvariable=driveid, width=4, font=font_mid).place(x=310, y=y2)
-    btn_execute = Button(top, text="執行PM程式", command=callback_execute_pm, font=font_mid, bg='aqua', fg='red')
-    btn_execute.place(x=440, y=y1)
+    btn_execute = Button(top, text="執行PM程式", command=callback_execute_pm, font=font_mid, bg='orange', fg='blue')
+    btn_execute.place(x=x0, y=y2)
     top.mainloop()
 
 
