@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from selenium.webdriver.common.by import By as WebBy
 from selenium.webdriver.support.ui import Select as WebSelect
 import idt_tools_constant_pm as idtconst
+import idt_tools_word as idtword
 
 str_log = idtconst.str_log
 
@@ -20,7 +21,7 @@ def convert_pdf(FOLDER, FILENAMEPDF):
     # FOLDER: LOG/豐盟/ASR/
     # filename: PDF is FOX1729GWHJ_FM-I-ASR-02.pdf
     print("filename PDF is %s" % FILENAMEPDF)
-    NEWFILEPDF = FOLDER + FILENAMEPDF
+    NEWFILEPDF = os.path.join(FOLDER, FILENAMEPDF)
     if os.path.isfile(NEWFILEPDF):
         os.remove(NEWFILEPDF)
     temp_pdf_folder = os.path.join(os.getcwd(), "pdf_temp_" + FILENAMEPDF[:-4])
@@ -35,7 +36,7 @@ def convert_pdf(FOLDER, FILENAMEPDF):
 
 
 ##列印選取內容
-def get_content(FILENAME, HOST, device_cmds):
+def OLD_get_content(FILENAME, HOST, device_cmds):
     ##確認檔案是否存在
     if os.path.exists(FILENAME):
         data_list = []
@@ -51,6 +52,128 @@ def get_content(FILENAME, HOST, device_cmds):
         # shxrange = range(bk.nsheets)
         # sh = bk.sheet_by_name("ASR")
         # nrows = sh.nrows
+
+        ##讀取Execl 內指令,比對XXXXXX.txt內相同的行數
+        for file_data_line in range(len(file_data)):
+            for row_command in device_cmds:
+                # row_command = sh.cell_value(execl_line, 0)
+                command = "RP/0/RSP0/CPU0:" + HOST + "#" + row_command + "\n"
+                # 比對資料是否相符
+                if file_data[file_data_line] == command:
+                    data_list.extend([file_data_line])
+
+        for data_list_line in range(len(data_list)):
+            ##讀取XXXXXX.txt 列印資料
+            data_len = 109
+            one_page_line = 80
+            page_capture_line = 70
+            half_page = 20
+            less_page1 = 0
+            more_page1 = 0
+            more_page2 = 0
+
+            line_no = int(data_list[data_list_line])
+            next = data_list_line + 1
+
+            ##讀取下一筆行數
+            if next < len(data_list):
+                line_next = int(data_list[next])
+            ##最後一筆行數
+            elif next == len(data_list):
+                line_next = len(file_data)
+
+            ##比對前後兩筆行數差多少行
+            sub_line = int(line_next - line_no)
+            # print "########################"
+            # print "file_data is %s" % len(file_data)
+            # print "line_no is %s" % line_no
+            # print "line_next is %s" % line_next
+            # print "sub_line is %s" % sub_line
+            # print "content is %s" % file_data[line_no]
+            # print "########################"
+
+            ########################################
+            ##比對前後兩筆相差的行數比一頁 80行還多
+            ########################################
+            if (sub_line > one_page_line):
+                # 統計資料超過一行
+                for more_line in range(page_capture_line):
+                    more_data_len = len(file_data[line_no + more_line])
+                    if more_data_len > data_len:
+                        more_page1 = more_page1 + 1
+
+                    # print "file_data_len is %s"% more_data_len
+                    # print "file_data is %s"% file_data[line_no + more_line]
+
+                # print "more_page1 is %s" %more_page1
+                for more_half_line in range(more_page1):
+                    more_data_len_1 = len(file_data[line_no + more_half_line])
+                    if more_data_len_1 > data_len:
+                        more_page2 = more_page2 + 1
+
+                # print "more_page2 is %s" %more_page2
+                ##超過一行的行數超過半頁
+                if more_page1 > half_page:
+
+                    # 列印符合內容
+                    for more_print_line in range(more_page1):
+                        content = file_data[line_no + more_print_line]
+                        fp.write(content)
+
+                    # 列印空白行數
+                    for more_print_line in range(one_page_line - more_page1 - more_page2):
+                        content = "\n"
+                        fp.write(content)
+                # print "more_page1 > half_page is %s" % more_print_line
+                # 超過一行的行數少於半頁
+                if more_page1 < half_page:
+
+                    # 列印符合內容
+                    for more_print_half_line in range(page_capture_line):
+                        content = file_data[line_no + more_print_half_line]
+                        fp.write(content)
+
+                    # 列印空白行數
+                    for more_print_half_space_line in range(one_page_line - page_capture_line - more_page1):
+                        content = "\n"
+                        fp.write(content)
+                # print "more_page1 < half_page"
+            # print "sub_line > one_page_line"
+            ########################################
+            ##比對前後兩筆相差的行數比一頁 80行還少
+            ########################################
+            elif (sub_line < one_page_line):
+                # 列印資料
+                for less_line in range(sub_line):
+                    less_data_len = len(file_data[line_no + less_line])
+                    if less_data_len > data_len:
+                        less_page1 = less_page1 + 1
+
+                    # 列印符合內容
+                    content = file_data[line_no + less_line]
+                    fp.write(content)
+                # print "less_page1 is %s"%less_page1
+                # 列印空白行
+                for less_print_space_line in range(80 - sub_line - less_page1):
+                    content = "\n"
+                    fp.write(content)
+            # print "sub_line < one_page_line"
+        fp.close
+
+    else:
+        # TODO FrankChen 20200915-04 change path to FILENAME
+        print('the path [{}] is not exist!'.format(FILENAME))
+
+
+def get_content(FILENAME, HOST, device_cmds):
+    ##確認檔案是否存在
+    if os.path.exists(FILENAME):
+        data_list = []
+        content = ' '
+        #  TODO　20200915-07
+        fp = open("temp.txt", "w")
+        file_data = ' '
+        file_data = linecache.getlines(FILENAME)
 
         ##讀取Execl 內指令,比對XXXXXX.txt內相同的行數
         for file_data_line in range(len(file_data)):
@@ -253,8 +376,10 @@ def telNetCall(IP, HOST, SO, DEVICE, ID, PW, device_cmds):
 
     print("{} {} ({}) 02  @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
     if (DEVICE == "uBR10K") or (DEVICE == "cBR8") or (DEVICE == "ASR") or (DEVICE == "DTI") or (DEVICE == "Switch"):
-        FILENAME = FOLDER + "%s_%s.txt" % (SN, HOST)
-        FILENAMEPDF = "%s_%s.pdf" % (SN, HOST)
+        # FILENAME = FOLDER + "%s_%s.txt" % (SN, HOST)
+        # FILENAMEPDF = "%s_%s.pdf" % (SN, HOST)
+        FILENAME = os.path.join(FOLDER, "{} {}_{}.txt".format(SO, SN, HOST))
+        FILENAMEPDF = "{} {}_{}.pdf".format(SO, SN, HOST)
         print("SN is %s" % SN)
         print("HOST is %s" % HOST)
         print("filename is %s\n" % (FILENAME))
@@ -287,10 +412,12 @@ def telNetCall(IP, HOST, SO, DEVICE, ID, PW, device_cmds):
         fp.write(output)
         fp.close
         print("{} {} ({}) 06 finish file @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
-        if (DEVICE == "ASR"):
-            content = get_content(FILENAME, HOST, device_cmds)
-            convert_pdf(FOLDER, FILENAMEPDF)
-            print("{} {} ({}) 07 pdf file converted @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
+        if DEVICE in ("ASR", "cBR8", "uBR10K"):
+            # content = get_content(FILENAME, HOST, device_cmds)
+            # convert_pdf(FOLDER, FILENAMEPDF)
+            word_title = "{} {}_{}檢查報告".format(SO, SN, HOST)
+            idtword.word_log_txt_file_to_docx(FILENAME, word_title)
+            print("{} {} ({}) 07 word (.docx) file converted @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
 
     ############################################################
     # login DTI

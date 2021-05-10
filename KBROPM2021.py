@@ -13,7 +13,7 @@ import idt_tools_ssh as idtssh
 import idt_tools_constant_pm as pmconst
 
 
-def pm_execute_ops(pm_xlsx_file_name, event_time, drive_letter=""):
+def pm_execute_ops(pm_xlsx_file_name, event_time, str_op_quarter):
     fail_log_file = os.path.join(os.getcwd(), "KBRO_PM_Fail_" + event_time + ".log")
     pm_ip_list = idtconst.get_ips_via_excel_file(pm_xlsx_file_name, "IP")
     print("event_time", event_time)
@@ -32,7 +32,10 @@ def pm_execute_ops(pm_xlsx_file_name, event_time, drive_letter=""):
                     idtcrtrix.netscaler_show_lsn_session_worker(device_ip, device_host, device_so, device_type,
                                                          device_user, device_pw, event_time)
                 else:
-                    device_cmds = idtconst.get_device_cmds_via_excel_file(device_type, pm_xlsx_file_name)
+                    device_cmds = idtconst.get_device_cmds_via_excel_file(device_type, pm_xlsx_file_name, str_op_quarter)
+                    for cmd, cmd_idx in enumerate(device_cmds):
+                        print(cmd, cmd_idx)
+
                     if len(device_cmds) > 0 or device_type == "RFGW":
                         if device_type.upper() == "CGNAT":
                             idtcrtrix.netscaler_log_text(device_ip, device_host, device_so, device_type, device_user,

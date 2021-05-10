@@ -61,7 +61,7 @@ class HomePlus_IPCOLUMN:
     device_pw2 = 7
 
 
-def get_device_cmds_via_excel_file(device_type, kbro_pm_xlsx_file_name='KBRO PM.xlsx'):
+def get_device_cmds_via_excel_file(device_type, kbro_pm_xlsx_file_name, str_op_quarter):
     device_cmds = []
     if not os.path.isfile(kbro_pm_xlsx_file_name):
         return device_cmds
@@ -75,10 +75,17 @@ def get_device_cmds_via_excel_file(device_type, kbro_pm_xlsx_file_name='KBRO PM.
     max_row = sheet_obj.max_row
     for row in range(2, max_row + 1):
         cmd = sheet_obj.cell(row=row, column=1).value
+        # print(cmd)
         if cmd is None or len(cmd.strip()) == 0:
             pass
         else:
-            device_cmds.append(cmd.strip())
+            cmd_quarter = sheet_obj.cell(row=row, column=2).value
+            # print(cmd, cmd_quarter)
+            if cmd_quarter is None or len(cmd_quarter.strip()) == 0:
+                device_cmds.append(cmd.strip())
+            else:
+                if cmd_quarter.upper() == str_op_quarter.upper():
+                    device_cmds.append(cmd.strip())
     wb_obj.close()
     return device_cmds
 
@@ -118,7 +125,7 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
                 if device_type.upper() == "QB":
                     device_user = qb_user
                     device_pw = qb_pw
-                elif device_type.upper() == "CNGAT":
+                elif device_type.upper() == "CGNAT":
                     device_user = cgnat_user
                     device_pw = cgnat_pw
                 else:
@@ -131,7 +138,6 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
             pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw])
     wb_obj.close()
     return pm_ip_list
-
 
 
 def get_ips_via_excel_homeplus(the_pm_xlsx_file_name, sheet_name_ip="IP"):

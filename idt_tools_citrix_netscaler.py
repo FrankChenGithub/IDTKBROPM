@@ -50,8 +50,10 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
 
 def netscaler_log_text(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
     # todo 20210422 FrankChen 修改為LOG_YYYYmmDD_HHMM，並調整次目錄順序
-    # folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
-    # folder = os.path.join(idtconst.str_log, device_type, device_so)
+    if device_user == "" and device_pw == "":
+        print("FRANK no row_id, row_pw used default")
+        device_user = idtconst.cgnat_user
+        device_pw = idtconst.cgnat_pw
     folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -69,8 +71,8 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     doc = Document()
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
-        ID = idtconst.pm_user
-        PW = idtconst.pm_pw
+        device_user = idtconst.cgnat_user
+        device_pw = idtconst.cgnat_pw
 
     # folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
     # folder = os.path.join(idtconst.str_log, device_type, device_so)
@@ -108,8 +110,8 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
 def netscaler_show_lsn_session(device_ip, device_host, device_so, device_type, device_user, device_pw, xtime):
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
-        ID = idtconst.pm_user
-        PW = idtconst.pm_pw
+        device_user = idtconst.cgnat_user
+        device_pw = idtconst.cgnat_pw
 
     folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
     log_file_name = "{}_{}_{}.log".format(device_ip, xtime, device_host)

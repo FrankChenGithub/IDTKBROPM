@@ -16,7 +16,7 @@ import idt_AES_CBC_Encrypt_Decrypt as idtauthen
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-05-06版"
+APP_VERSION = "2021-05-10版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 
@@ -24,6 +24,11 @@ debug_mode = False
 debug_work_dir = ""
 work_dir = os.getcwd()
 event_day = datetime.datetime.now().strftime("%Y%m%d")
+quarter = (datetime.date.today().month-1)//3 + 1
+year = datetime.date.today().year
+# str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+# str_log = "LOG_{}".format(str_now)
+str_log_quarter_temp = "LOG_{}_Q{}"
 
 execution_log = "execution.log"
 execution_log_path = ""
@@ -42,6 +47,7 @@ userid = StringVar(value="frankchen")
 password = StringVar(value="")
 driveid = StringVar(value="M")
 copy_pm_to_server = IntVar(value=0)
+op_quarter = IntVar(value=quarter)
 kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
 # kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
 # kbro_pm_xlsx_file_name = "KBRO PM_20201102_JOY.xlsx"
@@ -117,14 +123,20 @@ def setting_gui():
     pm_xlsx_ops['value'] = xlsx_ops
     pm_xlsx_ops.bind("<<ComboboxSelected>>", callback_ops_selected)
     y1 = 50
-
+    Label(top, text="維護季度:", font=font_mid).place(x=10, y=y1)
+    # Radiobutton(top, text="Q1", variable=op_quarter, value=1, font=font_small, fg='blue').place(x=x0+20, y=y1)
+    y2 = y1 + 30
+    Radiobutton(top, text="Q1", variable=op_quarter, value=1, font=font_mid, fg='blue').place(x=x0, y=y2)
+    Radiobutton(top, text="Q2", variable=op_quarter, value=2, font=font_mid, fg='blue').place(x=x0 + 80, y=y2)
+    Radiobutton(top, text="Q3", variable=op_quarter, value=3, font=font_mid, fg='blue').place(x=x0 + 160, y=y2)
+    Radiobutton(top, text="Q4", variable=op_quarter, value=4, font=font_mid, fg='blue').place(x=x0 + 240, y=y2)
     # chk_copy = Checkbutton(top, text="複製定保檔案至伺服器相應目錄", variable=copy_pm_to_server, font=font_mid, fg='blue')
     # chk_copy.place(x=x0, y=y1)
-    y2 = 90
+    # y2 = 90
     # Label(top, text="伺服器路徑對應網路磁碟編碼:", font=font_mid).place(x=10, y=y2)
     # Entry(top, state=NORMAL, textvariable=driveid, width=4, font=font_mid).place(x=310, y=y2)
     btn_execute = Button(top, text="執行PM程式", command=callback_execute_pm, font=font_mid, bg='aqua', fg='red')
-    btn_execute.place(x=440, y=y1)
+    btn_execute.place(x=440, y=y1+20)
     top.mainloop()
 
 
@@ -150,8 +162,12 @@ def callback_execute_pm():
         else:
             return
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    KBROPM2021.pm_execute_ops(xlsx_file, str_time)
-    KBROPM2021.separate_files_via_ma_local(idtconst.str_log, idtconst.str_log_quarter)
+    int_op_quarter = op_quarter.get()
+    str_op_quarter = "Q{}".format(int_op_quarter)
+    str_log_quarter = str_log_quarter_temp.format(year, int_op_quarter)
+    print(int_op_quarter, str_op_quarter, str_log_quarter)
+    KBROPM2021.pm_execute_ops(xlsx_file, str_time, str_op_quarter)
+    KBROPM2021.separate_files_via_ma_local(idtconst.str_log, str_log_quarter)
 
 
 def find_pm_xlsx_file_list():
