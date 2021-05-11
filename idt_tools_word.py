@@ -81,7 +81,7 @@ def word_log_txt_file_to_docx(log_file_full, title):
     cmd = ""
     cmd_lines = []
     for txt_line in txt_lines:
-        print(txt_line)
+        # print(txt_line)
         if len(txt_line.strip()) == 0:
             pass
         elif txt_line.upper().find("#SH") > 0 or txt_line.upper().find("#ADMIN") > 0:
@@ -101,6 +101,40 @@ def word_log_txt_file_to_docx(log_file_full, title):
                 cmd = ""
     doc.save(docx_file_full)
     docx2pdf.convert(docx_file_full)
+    if os.path.exists(docx_file_full):
+        os.remove(docx_file_full)
+
+
+def word_log_txt_file_to_docx_cmts(log_file_full, title):
+    doc = Document()
+    word_docx_add_highlighted_paragraph_line(doc, title, 'Times New Roman', 10, True)
+    docx_file_full = log_file_full[:-4] + ".docx"
+    with open(log_file_full, mode="r") as log_file_obj:
+        txt_lines = log_file_obj.readlines()
+    start_cmd = False
+    cmd = ""
+    cmd_lines = []
+    for txt_line in txt_lines:
+        print(txt_line)
+        if len(txt_line.strip()) == 0:
+            pass
+        elif start_cmd:
+            if txt_line.upper().find("#SH") > 0:
+                start_cmd = False
+                word_write_command_to_docx(doc, cmd, cmd_lines)
+                break
+            else:
+                cmd_lines.append(txt_line)
+
+        elif txt_line.upper().find("#SH") > 0 and txt_line.upper().find("VERSION") > 0:
+            start_cmd = True
+            cmd = txt_line
+            cmd_lines = []
+
+    doc.save(docx_file_full)
+    docx2pdf.convert(docx_file_full)
+    if os.path.exists(docx_file_full):
+        os.remove(docx_file_full)
 
 
 if __name__ == "main":

@@ -39,7 +39,8 @@ qb_idrac_pw = "Idtech123!"
 quarter = (datetime.date.today().month-1)//3 + 1
 year = datetime.date.today().year
 str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-str_log = "LOG_{}".format(str_now)
+# Modify20210511 作業存檔目錄由 LOG_ 改為 TEMP_
+str_log = "TEMP_{}".format(str_now)
 str_log_quarter = "LOG_{}_Q{}".format(year, quarter)
 
 class IPCOLUMN:

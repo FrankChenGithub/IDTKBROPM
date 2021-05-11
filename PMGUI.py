@@ -16,7 +16,7 @@ import idt_AES_CBC_Encrypt_Decrypt as idtauthen
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-05-10版"
+APP_VERSION = "2021-05-11版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 
@@ -168,6 +168,8 @@ def callback_execute_pm():
     print(int_op_quarter, str_op_quarter, str_log_quarter)
     KBROPM2021.pm_execute_ops(xlsx_file, str_time, str_op_quarter)
     KBROPM2021.separate_files_via_ma_local(idtconst.str_log, str_log_quarter)
+    # Modify20210511 完成作業後關閉畫面
+    top.destroy()
 
 
 def find_pm_xlsx_file_list():
