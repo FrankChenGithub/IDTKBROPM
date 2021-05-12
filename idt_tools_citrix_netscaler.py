@@ -2,35 +2,41 @@ import datetime
 import json
 import os
 
+import docx2pdf
 import paramiko
 import select
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
-from docx.shared import RGBColor
+from docx.shared import RGBColor, Pt
 import idt_tools_constant_pm as idtconst
 from selenium import webdriver
 from selenium.webdriver.common.by import By as WebBy
 from selenium.webdriver.support.ui import Select as WebSelect
 import urllib.request as urllib2
 import time
+import idt_tools_word as idtword
 
 cmdX = [
-        "vtysh",
-        "ter le 0",
-        "exit",
-        "shell"]
+    "vtysh",
+    "ter le 0",
+    "exit",
+    "shell"]
 
 
-def netscaler_write_command_to_docx(doc, cmd, lines):
+def netscaler_write_command_to_docx(doc, cmd, lines, font_size_cmd, font_size_lines):
     first_line = True
     paragraph = doc.add_paragraph()
     header = paragraph.add_run()
+    header.font.size = Pt(font_size_cmd)
+    header.font.name = 'Time New Roman'
     header.add_text(cmd)
     header.bold = True
     header.font.color.rgb = RGBColor(0x00, 0x00, 0xff)
     header.font.highlight_color = WD_COLOR_INDEX.YELLOW
     header.add_break()
     a_run = paragraph.add_run()
+    header.font.name = 'Consolas'
+    a_run.font.size = Pt(font_size_lines)
     for line_idx, line in enumerate(lines):
         if line.strip() != "Done":
             a_run.add_text(line.lstrip())
@@ -48,27 +54,31 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
     # doc.save('multipleParagraphs.docx')
 
 
-def netscaler_log_text(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
+def cgnat_log_text(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
     # todo 20210422 FrankChen 修改為LOG_YYYYmmDD_HHMM，並調整次目錄順序
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
         device_user = idtconst.cgnat_user
         device_pw = idtconst.cgnat_pw
-    folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
+    folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so, device_host)
     if not os.path.exists(folder):
         os.makedirs(folder)
-    netscaler_log_text_docx(folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime)
+    cgnat_log_text_docx(folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime)
     print("> netscaler_get_https_screenshot")
     netscaler_get_https_screenshot(folder, device_ip, device_host, device_so, device_type, device_user, device_pw)
 
     # rename Citrix NetScaler - Dashboard.pdf
     pdfs = [f for f in os.listdir(folder) if f[-3:].upper() == "PDF" and f.lower().find("dashboard") > -1]
     if len(pdfs) > 0:
-        os.rename(os.path.join(folder, pdfs[0]), os.path.join(folder, "{}_{}_Dashboard.pdf".format(device_ip, device_host)))
+        os.rename(os.path.join(folder, pdfs[0]),
+                  os.path.join(folder, "{}_{}_Dashboard.pdf".format(device_ip, device_host)))
 
 
-def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
+def cgnat_log_text_docx(device_log_folder, device_ip, device_host, device_so, device_type, device_user, device_pw, cmds,
+                        xtime):
     doc = Document()
+    font_size_cmd = 12
+    font_size_lines = 9
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
         device_user = idtconst.cgnat_user
@@ -78,10 +88,7 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     # folder = os.path.join(idtconst.str_log, device_type, device_so)
     folder = device_log_folder
     # docx_file_name = "{}_{}_{}.docx".format(device_ip, xtime, device_host)
-    docx_file_name = "{}_{}.docx".format(device_ip, device_host)
-    docx_full_path = os.path.join(folder, docx_file_name)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+
     print(cmds)
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -92,6 +99,7 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
                 look_for_keys=False)
 
     print(cmds)
+    third_subject_added = False
     for cmd_idx, cmd in enumerate(cmds):
         print(cmd_idx, cmd)
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
@@ -99,12 +107,37 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
             pass
         else:
             output = ssh_stdout.readlines()
-            # doc.add_heading(text=cmd, level=1)
-            # header = doc.add_paragraph(cmd)
-            netscaler_write_command_to_docx(doc, cmd, output)
+            if cmd.lower() == "show host":
+                for idx, oline in enumerate(output):
+                    print(idx, oline)
+                device_host = output[1].strip().split()[-1]
+                title = "{}{} 檢查報告".format(device_so, device_host)
+                # lines = ["1. 備份系統設定檔"]
+                idtword.word_title_to_docx(doc, title, [])
+            elif -1 < cmd.lower().find("cat") < cmd.lower().find("ns.conf"):
+                a_line = "1. 備份系統設定檔"
+                idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
+            elif -1 < cmd.lower().find("cat") < cmd.lower().find("ZebOS.conf"):
+                a_line = "2. 備份路由設定檔"
+                idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
+            elif -1 < cmd.lower().find("messages") < cmd.lower().find("grep"):
+                if not third_subject_added:
+                    third_subject_added = True
+                    a_line = "3. 檢查目前系統 log 訊息"
+                    idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
+            # netscaler_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
+            idtword.word_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
             print(ssh_stderr)
-            doc.save(docx_full_path)
+
+    docx_file_name = "{}({}).docx".format(device_host, device_ip)
+    docx_full_path = os.path.join(folder, docx_file_name)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    doc.save(docx_full_path)
     ssh.close()
+    docx2pdf.convert(docx_full_path)
+    if os.path.exists(docx_full_path):
+        os.remove(docx_full_path)
 
 
 def netscaler_show_lsn_session(device_ip, device_host, device_so, device_type, device_user, device_pw, xtime):
@@ -160,7 +193,7 @@ def netscaler_show_lsn_session_worker(device_ip, device_host, device_so, device_
     ssh.close()
     end_time = datetime.datetime.now()
     print(device_so, "end@", end_time)
-    print("total:", end_time-start_time)
+    print("total:", end_time - start_time)
 
 
 def cgnat_show_lsn_session_worker(device_ip, device_host, device_so, wdir, device_user, device_pw, xtime):
@@ -185,7 +218,7 @@ def cgnat_show_lsn_session_worker(device_ip, device_host, device_so, wdir, devic
     ssh.close()
     end_time = datetime.datetime.now()
     print(device_so, "end@", end_time)
-    print("total:", end_time-start_time)
+    print("total:", end_time - start_time)
 
 
 def worker(log_full_path, stdout, stderr, device_host=""):
@@ -213,10 +246,10 @@ def worker(log_full_path, stdout, stderr, device_host=""):
 
 
 def myexec(result_log_file, ssh, cmd, timeout):
-    stdin, stdout, stderr = ssh.exec_command(cmd) # one channel per command
+    stdin, stdout, stderr = ssh.exec_command(cmd)  # one channel per command
     channel = stdout.channel
-    stdin.close()                 # we do not need stdin.
-    channel.shutdown_write()      # indicate that we're not going to write to that channel anymore
+    stdin.close()  # we do not need stdin.
+    channel.shutdown_write()  # indicate that we're not going to write to that channel anymore
 
     with open(result_log_file, "w+") as f_log:
         stdout_chunks = []
@@ -246,7 +279,7 @@ def myexec(result_log_file, ssh, cmd, timeout):
                 stdout.channel.shutdown_read()  # indicate that we're not going to read from this channel anymore
                 # close the channel
                 stdout.channel.close()
-                break    # exit as remote side is finished and our bufferes are empty
+                break  # exit as remote side is finished and our bufferes are empty
 
         # close all the pseudofiles
         stdout.close()
@@ -256,31 +289,31 @@ def myexec(result_log_file, ssh, cmd, timeout):
 
 
 def myexec_original(ssh, cmd, timeout, want_exitcode=False):
-    stdin, stdout, stderr = ssh.exec_command(cmd) # one channel per command
+    stdin, stdout, stderr = ssh.exec_command(cmd)  # one channel per command
     # get the shared channel for stdout/stderr/stdin
     channel = stdout.channel
 
-    stdin.close()                 # we do not need stdin.
-    channel.shutdown_write()      # indicate that we're not going to write to that channel anymore
+    stdin.close()  # we do not need stdin.
+    channel.shutdown_write()  # indicate that we're not going to write to that channel anymore
 
     # read stdout/stderr in order to prevent read block hangs
     stdout_chunks = []
     # stdout_chunks.append(stdout.channel.recv(len(c.in_buffer)))
     stdout_chunks.append(stdout.channel.recv(len(stdout.channel.in_buffer)))
     # chunked read to prevent stalls
-    while not channel.closed: # stop if channel was closed prematurely
+    while not channel.closed:  # stop if channel was closed prematurely
         readq, _, _ = select.select([stdout.channel], [], [], timeout)
         for c in readq:
             if c.recv_ready():
                 stdout_chunks.append(stdout.channel.recv(len(c.in_buffer)))
             if c.recv_stderr_ready():
-              # make sure to read stderr to prevent stall
+                # make sure to read stderr to prevent stall
                 stderr.channel.recv_stderr(len(c.in_stderr_buffer))
         if stdout.channel.exit_status_ready() and not stderr.channel.recv_stderr_ready() and not stdout.channel.recv_ready():
             stdout.channel.shutdown_read()  # indicate that we're not going to read from this channel anymore
             # close the channel
             stdout.channel.close()
-            break    # exit as remote side is finished and our bufferes are empty
+            break  # exit as remote side is finished and our bufferes are empty
 
     # close all the pseudofiles
     stdout.close()
@@ -380,8 +413,6 @@ def netscaler_show_lsn_client(device_ip, device_user, device_pw):
                 client_csv_file.writelines(client_nats)
 
     ssh.close()
-
-
 
 # appState = {"recentDestinations": [{"id": "Save as PDF", "origin": "local", "account": ""}],
 #                 "selectedDestinationId": "Save as PDF",

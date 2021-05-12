@@ -18,6 +18,7 @@ from selenium.webdriver.support.ui import Select as WebSelect
 import urllib.request as urllib2
 import time
 import sys
+import docx2pdf
 
 cmdX = [
         "vtysh",
@@ -76,9 +77,9 @@ def qb_log_and_config_txts_and_word(device_log_folder, file_prefix, device_ip, d
     title = file_prefix
     begin_time = "[BEGIN] {}".format(str_time)
     print(title, begin_time)
-    netscaler_docx_add_highlighted_paragraph_line(doc, title, "Courier New", 12, True)
+    netscaler_docx_add_highlighted_paragraph_line(doc, title, "Time New Roman", 12, True)
     print(title)
-    netscaler_docx_add_highlighted_paragraph_line(doc, begin_time, "Courier New", 10, False)
+    netscaler_docx_add_highlighted_paragraph_line(doc, begin_time, "Consolas", 12, False)
     print("qb_dell_log_and_config_txts(", device_log_folder, device_ip, device_host, device_so, device_type,
           device_user, device_pw, cmds, xtime, ")")
     if device_user == "" and device_pw == "":
@@ -137,9 +138,12 @@ def qb_log_and_config_txts_and_word(device_log_folder, file_prefix, device_ip, d
             print(ssh_stderr.readlines())
     str_time = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     end_time = "[END] {}".format(str_time)
-    netscaler_docx_add_highlighted_paragraph_line(doc, end_time, "Courier New", 10, False)
+    netscaler_docx_add_highlighted_paragraph_line(doc, end_time, "Consolas", 12, False)
     doc.save(docx_full_path)
     ssh.close()
+    docx2pdf.convert(docx_full_path)
+    if os.path.exists(docx_full_path):
+        os.remove(docx_full_path)
 
 
 def netscaler_title_to_docx(doc, title, lines):
@@ -177,6 +181,8 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
     first_line = True
     paragraph = doc.add_paragraph()
     header = paragraph.add_run()
+    header.font.size = Pt(12)
+    header.font.name = 'Time New Roman'
     header.add_text(cmd)
     header.bold = True
     header.font.color.rgb = RGBColor(0x00, 0x00, 0xff)
@@ -184,7 +190,7 @@ def netscaler_write_command_to_docx(doc, cmd, lines):
     header.add_break()
     a_run = paragraph.add_run()
     a_run.font.size = Pt(10)
-    a_run.font.name = 'Courier New'
+    a_run.font.name = 'Consolas'
     for line_idx, line in enumerate(lines):
         if line.strip() != "Done":
             a_run.add_text(line.lstrip())

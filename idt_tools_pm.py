@@ -414,10 +414,11 @@ def telNetCall(IP, HOST, SO, DEVICE, ID, PW, device_cmds):
         print("{} {} ({}) 06 finish file @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
         if DEVICE in ("ASR", "cBR8", "uBR10K"):
             word_title = "{} {}_{}檢查報告".format(SO, SN, HOST)
-            if DEVICE in ("cBR8", "uBR10K"):
-                idtword.word_log_txt_file_to_docx_cmts(FILENAME, word_title)
-            else:
-                idtword.word_log_txt_file_to_docx(FILENAME, word_title)
+            # if DEVICE in ("cBR8", "uBR10K"):
+            #     idtword.word_log_txt_file_to_docx_cmts(FILENAME, word_title)
+            # else:
+            #     idtword.word_log_txt_file_to_docx(FILENAME, word_title)
+            idtword.word_log_txt_file_to_docx(FILENAME, word_title, DEVICE)
             print("{} {} ({}) 07 word (.docx) file converted @ {}".format(HOST, DEVICE, IP, datetime.datetime.now()))
 
     ############################################################

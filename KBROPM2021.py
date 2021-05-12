@@ -38,7 +38,7 @@ def pm_execute_ops(pm_xlsx_file_name, event_time, str_op_quarter):
 
                     if len(device_cmds) > 0 or device_type == "RFGW":
                         if device_type.upper() == "CGNAT":
-                            idtcrtrix.netscaler_log_text(device_ip, device_host, device_so, device_type, device_user,
+                            idtcrtrix.cgnat_log_text(device_ip, device_host, device_so, device_type, device_user,
                                                          device_pw, device_cmds, event_time)
                         elif device_type.upper() == "QB":
                             idtQB.dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user,

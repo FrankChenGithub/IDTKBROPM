@@ -43,6 +43,7 @@ str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 str_log = "TEMP_{}".format(str_now)
 str_log_quarter = "LOG_{}_Q{}".format(year, quarter)
 
+
 class IPCOLUMN:
     device_ip = 1
     device_host = 2
