@@ -12,11 +12,12 @@ import idt_tools_general_pm as idtgen
 import idt_tools_constant_pm as idtconst
 import KBROPM2021
 import idt_AES_CBC_Encrypt_Decrypt as idtauthen
+import idt_tools_env_check as idtapenv
 
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-05-12版"
+APP_VERSION = "2021-05-26版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 
@@ -145,11 +146,38 @@ def callback_ops_selected(event):
     print("callback_ops_selected", xlsx_file)
 
 
+def check_app_env():
+    [status, msg] = idtapenv.check_chromedriver_version("")
+    msgs = msg
+    if msg != "OK":
+        if status == "NOEXE":
+            s1 = "請至下列網址下載適合的版本"
+            s2 = "解壓縮後，取代chromedriver.exe"
+            msgs = "{}\n{}\n{}\n{}\n{}".format(msg, s1, idtapenv.chrome_driver_download_url, s2, idtapenv.chromedriver_loc)
+        elif status == "WRONGVERSION":
+            s2 = "解壓縮後，取代chromedriver.exe"
+            msgs = "{}\n{}\n{}".format(msg, s2, idtapenv.chromedriver_loc)
+        messagebox.showerror("Chrome Driver 執行檔或版本問題", msgs)
+        return False
+    [vpn_ok, msg] = idtapenv.check_gateway_ip_availability()
+    if not vpn_ok:
+        messagebox.showerror("VPN Connectivity Error", msg + "\n 請確認你的VPN連線沒有問題")
+        return False
+
+    return True
+
+
 def callback_execute_pm():
     proc_name = "季維護"
     copy_pm = copy_pm_to_server.get()
     xlsx_name = xlsx_ops_sel.get()
+    if len(xlsx_name) == 0:
+        messagebox.showinfo("No PM XLSX Selection Error", "請由下拉選單選取PM XLSX檔案")
+        return
     xlsx_file = os.path.join(work_dir, xlsx_name)
+
+    if not check_app_env():
+        return
 
     if copy_pm == 1:
         if check_authentication(proc_name):
