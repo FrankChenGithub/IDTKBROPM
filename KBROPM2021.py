@@ -19,8 +19,8 @@ def pm_execute_ops(pm_xlsx_file_name, event_time, str_op_quarter):
     print("event_time", event_time)
     for ip_idx, ip_info in enumerate(pm_ip_list):
         print(ip_info)
-        [device_ip, device_host, device_so, device_type, device_user, device_pw] = ip_info
-        str_ip_info = ",".join(ip_info) + "\n"
+        [device_ip, device_host, device_so, device_type, device_user, device_pw, device_waittime] = ip_info
+        str_ip_info = ",".join(map(str, ip_info)) + "\n"
         try:
             if device_type.upper() == "PNR":
                 idtpm.get_pnr_http_screenshot(device_ip, device_host, device_so, device_host, device_user, device_pw)
@@ -42,7 +42,7 @@ def pm_execute_ops(pm_xlsx_file_name, event_time, str_op_quarter):
                                                          device_pw, device_cmds, event_time)
                         elif device_type.upper() == "QB":
                             idtQB.dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user,
-                                                         device_pw, device_cmds, event_time)
+                                                         device_pw, device_cmds, event_time, device_waittime)
                         elif device_type.upper() == "N9K":
                             idtssh.pm_ssh_n9k(device_ip, device_host, device_so, device_type, device_user, device_pw,
                                                     device_cmds, event_time)

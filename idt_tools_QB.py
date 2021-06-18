@@ -49,22 +49,35 @@ def OLD_dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, 
     #     os.rename(os.path.join(folder, pdfs[0]), os.path.join(folder, "{}_{}_Dashboard.pdf".format(device_ip, device_host)))
 
 
-def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime):
+def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, device_user, device_pw, cmds, xtime,
+                            device_waittime):
+    device_idrac_user = ""
+    device_idrac_pw = ""
     device_ip1 = device_ip.split(",")[0].strip()
     device_ip2 = device_ip.split(",")[-1].strip()
     folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
     if not os.path.exists(folder):
         os.makedirs(folder)
     print(device_ip1, device_ip2, folder)
-    # output to document and txt
-    fiel_prefix = "{} QB200檢查報告".format(device_so)
-    qb_log_and_config_txts_and_word(folder, fiel_prefix, device_ip1, device_host, device_so, device_type, device_user,
+    if device_user.find(",") > -1:
+        users = device_user.split(",")
+        device_user = users[0].strip()
+        device_idrac_user = users[1].strip()
+        pws = device_pw.split(",")
+        device_pw = pws[0].strip()
+        device_idrac_pw = pws[1].strip()
+
+    file_prefix = "{} QB200檢查報告".format(device_so)
+    qb_log_and_config_txts_and_word(folder, file_prefix, device_ip1, device_host, device_so, device_type, device_user,
                                     device_pw, cmds, xtime)
 
-    qb_get_https_screenshot(folder, fiel_prefix, device_ip1, device_host, device_so, device_type, device_user, device_pw)
-    device_idrac_user = "idtech"
-    device_idrac_pw = "Idtech123!"
-    qb_get_idrac_screenshot(folder, fiel_prefix, device_ip2, device_host, device_so, device_type, device_idrac_user, device_idrac_pw)
+    qb_get_https_screenshot(folder, file_prefix, device_ip1, device_host, device_so, device_type, device_user,
+                            device_pw, device_waittime)
+    if device_idrac_user == "":
+        device_idrac_user = "idtech"
+        device_idrac_pw = "Idtech123!"
+    qb_get_idrac_screenshot(folder, file_prefix, device_ip2, device_host, device_so, device_type, device_idrac_user,
+                            device_idrac_pw, device_waittime)
 
 
 def qb_log_and_config_txts_and_word(device_log_folder, file_prefix, device_ip, device_host, device_so, device_type,
@@ -308,7 +321,8 @@ def netscaler_log_text_docx(device_log_folder, device_ip, device_host, device_so
     ssh.close()
 
 
-def qb_get_https_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw):
+def qb_get_https_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw,
+                            device_waittime):
     # RFFOLDER = os.path.join(os.getcwd(), "LOG/%s/%s/%s" % (SO, DEVICE, HOST))
     # RFFOLDER = os.path.join(idtconst.str_log, DEVICE, SO,  HOST)
     RFFOLDER = device_log_folder
@@ -349,7 +363,10 @@ def qb_get_https_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO,
     # btn = browser.find_element_by_id("url")
     # print(btn.text)
     btn.click()
-    time.sleep(10)
+    if device_waittime > 0:
+        time.sleep(device_waittime)
+    else:
+        time.sleep(20)
     file_png = "{}_viewer.png".format(file_prefix)
     dashboard1 = os.path.join(RFFOLDER, file_png)
     # dashboard1 = "{}/{}_{}_viewer.png".format(RFFOLDER, IP, HOST)
@@ -361,7 +378,8 @@ def qb_get_https_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO,
     browser.quit()
 
 
-def qb_get_idrac_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw):
+def qb_get_idrac_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO, DEVICE, device_user, device_pw,
+                            device_waittime):
     try:
         RFFOLDER = device_log_folder
         if not os.path.exists(RFFOLDER):
@@ -406,8 +424,10 @@ def qb_get_idrac_screenshot(device_log_folder, file_prefix, device_ip, HOST, SO,
         actionChains_pw.move_to_element(elem_pw).click().perform()
         actionChains_pw.move_to_element(elem_pw).send_keys(device_pw, Keys.RETURN).perform()
         print("pw key sent")
-
-        time.sleep(25)
+        if device_waittime > 0:
+            time.sleep(device_waittime)
+        else:
+            time.sleep(30)
         file_png = "{}_idrac.png".format(file_prefix)
         dashboard1 = os.path.join(RFFOLDER, file_png)
         # dashboard1 = "{}/{}_{}_idrac.png".format(RFFOLDER, IP, HOST)

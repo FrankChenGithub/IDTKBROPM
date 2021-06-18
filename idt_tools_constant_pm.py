@@ -51,6 +51,7 @@ class IPCOLUMN:
     device_type = 4
     device_user = 5
     device_pw = 6
+    device_waittime = 7
 
 
 class HomePlus_IPCOLUMN:
@@ -137,7 +138,12 @@ def get_ips_via_excel_file(kbro_pm_xlsx_file_name='KBRO PM.xlsx', sheet_name_ip=
                 device_user = device_user.strip()
                 if device_pw is None or len(device_pw.strip()) == 0:
                     device_pw = ""
-            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw])
+            # Modify20210618 新增針對網頁截圖特別指定的等待時間
+            device_waittime = sheet_obj.cell(row=row, column=cols.device_waittime).value
+            if device_waittime is None:
+                device_waittime = -1
+
+            pm_ip_list.append([device_ip, device_host, device_so, device_type, device_user, device_pw, device_waittime])
     wb_obj.close()
     return pm_ip_list
 
