@@ -17,7 +17,7 @@ import idt_tools_env_check as idtapenv
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-06-18版"
+APP_VERSION = "2021-07-26版(CGNAT截圖)"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 

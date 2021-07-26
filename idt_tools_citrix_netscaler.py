@@ -87,8 +87,10 @@ def cgnat_log_text_docx(device_log_folder, device_ip, device_host, device_so, de
     # folder = os.path.join(os.getcwd(), "LOG/%s/%s/" % (device_so, device_type))
     # folder = os.path.join(idtconst.str_log, device_type, device_so)
     folder = device_log_folder
-    # docx_file_name = "{}_{}_{}.docx".format(device_ip, xtime, device_host)
-
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    txt_file_name = "{}_{}_{}.txt".format(device_ip, xtime, device_host)
+    txt_file_abs = os.path.join(folder, txt_file_name)
     print(cmds)
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -99,45 +101,48 @@ def cgnat_log_text_docx(device_log_folder, device_ip, device_host, device_so, de
                 look_for_keys=False)
 
     print(cmds)
-    third_subject_added = False
-    for cmd_idx, cmd in enumerate(cmds):
-        print(cmd_idx, cmd)
-        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
-        if cmd in cmdX:
-            pass
-        else:
-            output = ssh_stdout.readlines()
-            if cmd.lower() == "show host":
-                for idx, oline in enumerate(output):
-                    print(idx, oline)
-                device_host = output[1].strip().split()[-1]
-                title = "{}{} 檢查報告".format(device_so, device_host)
-                # lines = ["1. 備份系統設定檔"]
-                idtword.word_title_to_docx(doc, title, [])
-            elif -1 < cmd.lower().find("cat") < cmd.lower().find("ns.conf"):
-                a_line = "1. 備份系統設定檔"
-                idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
-            elif -1 < cmd.lower().find("cat") < cmd.lower().find("ZebOS.conf"):
-                a_line = "2. 備份路由設定檔"
-                idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
-            elif -1 < cmd.lower().find("messages") < cmd.lower().find("grep"):
-                if not third_subject_added:
-                    third_subject_added = True
-                    a_line = "3. 檢查目前系統 log 訊息"
+    with open(txt_file_abs, "w") as txt_file_obj:
+        third_subject_added = False
+        for cmd_idx, cmd in enumerate(cmds):
+            print(cmd_idx, cmd)
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
+            if cmd in cmdX:
+                pass
+            else:
+                output = ssh_stdout.readlines()
+                txt_file_obj.write("$" + cmd + "\n")
+                txt_file_obj.writelines(output)
+                txt_file_obj.write("\n")
+                if cmd.lower() == "show host":
+                    for idx, oline in enumerate(output):
+                        print(idx, oline)
+                    device_host = output[1].strip().split()[-1]
+                    title = "{}{} 檢查報告".format(device_so, device_host)
+                    # lines = ["1. 備份系統設定檔"]
+                    idtword.word_title_to_docx(doc, title, [])
+                elif -1 < cmd.lower().find("cat") < cmd.lower().find("ns.conf"):
+                    a_line = "1. 備份系統設定檔"
                     idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
-            # netscaler_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
-            idtword.word_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
-            print(ssh_stderr)
+                elif -1 < cmd.lower().find("cat") < cmd.lower().find("ZebOS.conf"):
+                    a_line = "2. 備份路由設定檔"
+                    idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
+                elif -1 < cmd.lower().find("messages") < cmd.lower().find("grep"):
+                    if not third_subject_added:
+                        third_subject_added = True
+                        a_line = "3. 檢查目前系統 log 訊息"
+                        idtword.word_docx_add_highlighted_paragraph_line(doc, a_line, "Time New Roman", 12, True)
+                # netscaler_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
+                idtword.word_write_command_to_docx(doc, cmd, output, font_size_cmd, font_size_lines)
+                print(ssh_stderr)
 
     docx_file_name = "{}({}).docx".format(device_host, device_ip)
     docx_full_path = os.path.join(folder, docx_file_name)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+
     doc.save(docx_full_path)
     ssh.close()
     docx2pdf.convert(docx_full_path)
-    if os.path.exists(docx_full_path):
-        os.remove(docx_full_path)
+    # if os.path.exists(docx_full_path):
+    #     os.remove(docx_full_path)
 
 
 def netscaler_show_lsn_session(device_ip, device_host, device_so, device_type, device_user, device_pw, xtime):
@@ -345,7 +350,7 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
                 "isHeaderFooterEnabled": True,
                 "isLandscapeEnabled": False,
                 "scalingType": 3,
-                "scaling": "72"}
+                "scaling": "63"}
     prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(appState),
              'savefile.default_directory': RFFOLDER,
              'download.default_directory': RFFOLDER}
@@ -367,6 +372,7 @@ def netscaler_get_https_screenshot(device_log_folder, IP, HOST, SO, DEVICE, devi
     # print(btn.text)
     btn.click()
     time.sleep(20)
+    browser.execute_script("document.body.style.zoom='75%'")
     dashboard1 = "%s/dashboard1.png" % (RFFOLDER)
     browser.get_screenshot_as_file(dashboard1)
     # dashboard2 = "%s/dashboard2.png" % (RFFOLDER)
