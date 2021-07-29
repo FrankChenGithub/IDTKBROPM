@@ -226,6 +226,42 @@ def cgnat_show_lsn_session_worker(device_ip, device_host, device_so, wdir, devic
     print("total:", end_time - start_time)
 
 
+def cgnat_show_lsn_session_worker_check_primary(device_ip, device_host, device_so, wdir, device_user, device_pw, xtime):
+    start_time = datetime.datetime.now()
+    print(device_so, "start@", start_time)
+    folder = wdir
+    log_file_name = "{}_{}_{}_{}.log".format(device_so, device_ip, xtime, device_host)
+    log_file_abs = os.path.join(folder, log_file_name)
+    print("log_file_abs:", log_file_abs)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(device_ip,
+                username=device_user,
+                password=device_pw,
+                look_for_keys=False)
+    cmd_check_primary = "sh ha node 0 | grep 'Master State:'"
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_check_primary)
+    data = ssh_stdout.readlines()
+    print(cmd_check_primary, data[1])
+    is_primary = False if data[1].lower().find("secondary") > -1 else True
+
+    cmd = "show lsn session"
+    if is_primary:
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd)
+        worker(log_file_abs, ssh_stdout, ssh_stderr, device_host)
+    else:
+        print("secondary do nothing---", device_ip, device_host, device_so)
+    ssh.close()
+    end_time = datetime.datetime.now()
+    print(device_so, "end@", end_time)
+    print("total:", end_time - start_time)
+
+    return [is_primary, log_file_abs]
+
+
 def worker(log_full_path, stdout, stderr, device_host=""):
     # Wait for the command to terminate
     print("Status of worker is {}".format(stdout.channel.exit_status_ready()))

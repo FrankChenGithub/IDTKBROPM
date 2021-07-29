@@ -44,6 +44,7 @@ def callback_lsn_client_ips():
         netscaler_show_lsn_client(cgnat_ip, "citrix_pm", "citrix_pm@123", "", today)
     print("---------------------程式執行完畢---------------")
 
+
 def netscaler_show_lsn_client(device_ip, device_user, device_pw, device_so, today):
     if device_user == "" and device_pw == "":
         print("FRANK no row_id, row_pw used default")
