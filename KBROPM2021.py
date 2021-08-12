@@ -145,7 +145,7 @@ def separate_files_via_ma_local(from_root, to_root):
 
 
 if __name__ == "__main__":
-    kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
+    kbro_pm_xlsx_file_name = 'XLSX_KBRO/KBRO PM.xlsx'
     str_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     pm_execute_ops(kbro_pm_xlsx_file_name, str_time)
 

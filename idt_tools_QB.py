@@ -58,7 +58,7 @@ def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, devi
     folder = os.path.join(os.getcwd(), idtconst.str_log, device_type, device_so,  device_host)
     if not os.path.exists(folder):
         os.makedirs(folder)
-    print(device_ip1, device_ip2, folder)
+
     if device_user.find(",") > -1:
         users = device_user.split(",")
         device_user = users[0].strip()
@@ -74,8 +74,9 @@ def dell_qb_log_and_screens(device_ip, device_host, device_so, device_type, devi
     qb_get_https_screenshot(folder, file_prefix, device_ip1, device_host, device_so, device_type, device_user,
                             device_pw, device_waittime)
     if device_idrac_user == "":
-        device_idrac_user = "idtech"
-        device_idrac_pw = "Idtech123!"
+        device_idrac_user = idtconst.qb_idrac_user                 #"idtech"
+        device_idrac_pw = idtconst.qb_idrac_pw                     #"Idtech123!"
+
     qb_get_idrac_screenshot(folder, file_prefix, device_ip2, device_host, device_so, device_type, device_idrac_user,
                             device_idrac_pw, device_waittime)
 

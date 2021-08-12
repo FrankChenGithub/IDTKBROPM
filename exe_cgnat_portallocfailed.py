@@ -190,13 +190,13 @@ if __name__ == "__main__":
     process_command_line_args(sys.argv)
     postfix_xtime = datetime.datetime.now().strftime("%Y%m%d%H%M")
     if debug_mode:
-        xlsx_ips = os.path.join(work_dir, "cgnat_ips_lab.xlsx")
+        xlsx_ips = os.path.join(work_dir, "KBROXLSX/cgnat_ips_lab.xlsx")
         # postfix_xtime = "202103181419"
         # so_ips = [["idtlab01", "10.0.0.1"], ["idtlab02", "10.0.0.3"]]
         grep_keyword = "netScalerLoginFailure"
         grp_by_keyword = "Remote_ip"
     else:
-        xlsx_ips = os.path.join(work_dir, "cgnat_ips.xlsx")
+        xlsx_ips = os.path.join(work_dir, "KBROXLSX/cgnat_ips.xlsx")
         grep_keyword = "portall"
         grp_by_keyword = "lsnSubscrIP"
 

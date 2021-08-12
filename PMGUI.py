@@ -17,7 +17,7 @@ import idt_tools_env_check as idtapenv
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 APP_NAME = "凱擘系統 定保工具"
-APP_VERSION = "2021-07-26版(CGNAT截圖)"
+APP_VERSION = "2021-08-02版"
 IDTAPPAUTHEN = idtauthen.IDTAppAuthentication()
 IDTAPPAUTHEN.app_name = APP_NAME
 
@@ -49,7 +49,7 @@ password = StringVar(value="")
 driveid = StringVar(value="M")
 copy_pm_to_server = IntVar(value=0)
 op_quarter = IntVar(value=quarter)
-kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
+kbro_pm_xlsx_file_name = 'XLSX_KBRO/KBRO PM.xlsx'
 # kbro_pm_xlsx_file_name = "KBRO PM_20201102_FrankKu.xlsx"
 # kbro_pm_xlsx_file_name = "KBRO PM_20201102_JOY.xlsx"
 # kbro_pm_xlsx_file_name = "KBRO PM_20210125_CGNAT.xlsx"

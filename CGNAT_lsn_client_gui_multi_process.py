@@ -10,7 +10,7 @@ import idt_tools_citrix_netscaler as idtssh
 import idt_tools_cgnat_lsn as idtcgnatlsn
 
 APP_NAME = "KBRO CGNAT工具"
-APP_VERSION = "2021-07-30版"
+APP_VERSION = "2021-08-02版"
 title_start = "{}: {} 尚未登入"
 title_loginned = "{}: {} (登入為:{}-)"
 
@@ -36,13 +36,14 @@ cmds = ["sh lsn client",
         "show lsn deterministicNat -clientname {CLIENT_NAME}"]
 
 top = tk.Tk()
-top.geometry('280x400')
-top.title(title_start)
+top.geometry('420x320')
+# top.title(title_start)
+top.title(title_start.format(APP_NAME, APP_VERSION))
 
 bigfont = tkFont.Font(family="Helvetica", size=20)
 font_mid = tkFont.Font(family="Helvetica", size=16)
 font_small = tkFont.Font(family="Helvetica", size=12)
-lbox_cgnat_ips = tk.Listbox
+lbox_so_name_with_codes = tk.Listbox
 
 work_dir = os.getcwd()
 
@@ -54,16 +55,19 @@ def cgnat_proc_a_device(device_ip, device_host, so_as_key, data_dir, device_user
         idtcgnatlsn.cgnat_so_device_log_to_xlsx(log_file_abs, so_as_key, device_host, xtime)
 
 
-def callback_lsn_client_ips():
-    selected_cngat_indices = lbox_cgnat_ips.curselection()
-    selected_ips = []
+def callback_lsn_client_execute():
+    selected_so_indices = lbox_so_name_with_codes.curselection()
+    op_so_list = []
     today = date.today().strftime("%Y%m%d")
-    for idx in selected_cngat_indices:
-        selected_ips.append(lbox_cgnat_ips.get(idx))
-    for so in selected_ips:
-        print(so)
+    for idx in selected_so_indices:
+        op_so_list.append(lbox_so_name_with_codes.get(idx))
 
-    xxx(cgnat_ips_dict, selected_ips)
+    if len(op_so_list) > 0:
+        for so in op_so_list:
+            print(so)
+        xxx(cgnat_ips_dict, op_so_list)
+    else:
+       print("no so selected: do nothing")
 
 
 def xxx(so_ips_dict, sel_sos):
@@ -101,25 +105,25 @@ def xxx(so_ips_dict, sel_sos):
 
 
 def gui_setting():
-    global lbox_cgnat_ips
+    global lbox_so_name_with_codes
     x1 = 20
-    y_list = 10
-    tk.Label(top, text="選取作業IP:", font=font_small, fg='blue').place(x=x1, y=y_list)
-    lbox_cgnat_ips = tk.Listbox(top, height=10, width=20, selectmode=tk.MULTIPLE, exportselection=0)
-    lbox_cgnat_ips.place(x=x1, y=y_list+30)
-    lbox_cgnat_ips.config(font=font_mid)
+    y_list = 40
+    tk.Label(top, text="選取作業SO(可多選):", font=font_small, fg='blue').place(x=x1, y=10)
+    lbox_so_name_with_codes = tk.Listbox(top, height=10, width=16, selectmode=tk.MULTIPLE, exportselection=0)
+    lbox_so_name_with_codes.place(x=x1, y=y_list)
+    lbox_so_name_with_codes.config(font=font_mid)
 
     for so_name_with_code in cgnat_ips_dict.keys():
-        lbox_cgnat_ips.insert(tk.END, so_name_with_code)
+        lbox_so_name_with_codes.insert(tk.END, so_name_with_code)
 
-    y_list_cmd = y_list + 290
-    btn_select_all = tk.Button(top, text="全選", command=lambda: lbox_cgnat_ips.select_set(0, "end"),
-                               font=font_mid, bg='pale green', fg='blue').place(x=x1, y=y_list_cmd)
-    btn_selection_clear = tk.Button(top, text="全不選", command=lambda: lbox_cgnat_ips.selection_clear(0, 'end'),
-                                    font=font_mid, bg='pale green', fg='blue').place(x=x1+80, y=y_list_cmd)
+    x2 = 240
+    btn_select_all = tk.Button(top, text="全選", command=lambda: lbox_so_name_with_codes.select_set(0, "end"),
+                               font=font_mid, bg='pale green', fg='blue').place(x=x2, y=y_list)
+    btn_selection_clear = tk.Button(top, text="全不選", command=lambda: lbox_so_name_with_codes.selection_clear(0, 'end'),
+                                    font=font_mid, bg='pale green', fg='blue').place(x=x2, y=y_list+60)
 
-    btn_sop = tk.Button(top, text="執行LSN Client", command=callback_lsn_client_ips, font=font_mid,
-                        bg='pale green', fg='blue').place(x=x1, y=y_list_cmd+50)
+    btn_sop = tk.Button(top, text="執行LSN Client", command=callback_lsn_client_execute, font=font_mid,
+                        bg='pale green', fg='blue').place(x=x2, y=y_list + 120)
     top.mainloop()
 
 
@@ -128,53 +132,3 @@ if __name__ == "__main__":
     gui_setting()
 
 
-
-# def netscaler_show_lsn_client(device_ip, device_user, device_pw, device_so, today):
-#     if device_user == "" and device_pw == "":
-#         print("FRANK no row_id, row_pw used default")
-#         device_user = "citrix_pm"
-#         device_pw = "citrix_pm@123"
-#
-#     folder = os.path.join(os.getcwd(), "CGNAT_CLIENT_LOG/{}/".format(device_ip))
-#     if not os.path.exists(folder):
-#         os.makedirs(folder)
-#     log_file_name = "LSN_{}.csv"
-#     cgnat_site_csv_name = "{}_cgnat_mapping-{}.csv"
-#     sep_idx = device_ip.find("_")
-#     if sep_idx > -1:
-#         [device_so, device_ip] = device_ip.split("_")
-#     print(device_ip, device_so, today)
-#
-#     cgnat_site_csv = cgnat_site_csv_name.format(device_so, today)
-#     cgnat_csv_full = os.path.join(folder, cgnat_site_csv)
-#     ssh = paramiko.SSHClient()
-#     ssh.load_system_host_keys()
-#     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#     ssh.connect(device_ip,
-#                 username=device_user,
-#                 password=device_pw,
-#                 look_for_keys=False)
-#     timeout = 7200
-#     cmd1 = "sh lsn client"
-#     cmd2 = "show lsn deterministicNat -clientname {}"
-#     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd1)
-#     clients = ssh_stdout.readlines()
-#     print(clients)
-#     for client in clients:
-#         client_info = client.split()
-#         if len(client_info) > 1:
-#             cmd_nat = cmd2.format(client_info[-1])
-#             ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(cmd_nat)
-#             client_nats = ssh_stdout.readlines()
-#             client_csv = log_file_name.format(client_info[-1])
-#             client_csv_full = os.path.join(folder, client_csv)
-#             with open(client_csv_full, mode="a") as client_csv_file:
-#                 client_csv_file.writelines(client_nats)
-#             with open(cgnat_csv_full, mode="a") as cgnat_csv_file:
-#                 for line in client_nats:
-#                     ss = line.strip().split()
-#                     if len(ss) == 6:
-#                         del ss[0]
-#                         cgnat_csv_file.write(",".join(ss)+"\n")
-#
-#     ssh.close()

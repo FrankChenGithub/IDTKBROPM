@@ -30,15 +30,15 @@ top.title(title_start)
 bigfont = tkFont.Font(family="Helvetica", size=20)
 font_mid = tkFont.Font(family="Helvetica", size=16)
 font_small = tkFont.Font(family="Helvetica", size=12)
-lbox_cgnat_ips = tk.Listbox
+lbox_so_name_with_codes = tk.Listbox
 
 
 def callback_lsn_client_ips():
-    selected_asr_indices = lbox_cgnat_ips.curselection()
+    selected_asr_indices = lbox_so_name_with_codes.curselection()
     selected_ips = []
     today = date.today().strftime("%Y%m%d")
     for idx in selected_asr_indices:
-        selected_ips.append(lbox_cgnat_ips.get(idx))
+        selected_ips.append(lbox_so_name_with_codes.get(idx))
     for cgnat_ip in selected_ips:
         print("execute telnet on ip@", cgnat_ip)
         netscaler_show_lsn_client(cgnat_ip, "citrix_pm", "citrix_pm@123", "", today)
@@ -97,7 +97,7 @@ def netscaler_show_lsn_client(device_ip, device_user, device_pw, device_so, toda
 
 
 def gui_setting():
-    global lbox_cgnat_ips
+    global lbox_so_name_with_codes
     x1 = 20
     y_list = 10
     tk.Label(top, text="選取作業IP:", font=font_small, fg='blue').place(x=x1, y=y_list)

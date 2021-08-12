@@ -33,14 +33,14 @@ qb_pw = "IDT_tech"
 qb_viewer_user = "IDT_tech"
 qb_viewer_pw = "IDT_tech"
 qb_idrac_user = "idtech"
-qb_idrac_pw = "Idtech123!"
+qb_idrac_pw = "Idtech123#"  #.encode("utf-8")
 
 
 quarter = (datetime.date.today().month-1)//3 + 1
 year = datetime.date.today().year
 str_now = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 # Modify20210511 作業存檔目錄由 LOG_ 改為 TEMP_
-str_log = "TEMP_{}".format(str_now)
+str_log = "{}(暫存)".format(str_now)
 str_log_quarter = "LOG_{}_Q{}".format(year, quarter)
 
 

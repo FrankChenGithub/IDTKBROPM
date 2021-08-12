@@ -535,7 +535,7 @@ def get_pnr_http_screenshot(IP, HOST, SO, DEVICE, id, pw):
 # import the execl file include the login information
 ############################################################
 # TODO FrankChen 20200915-5 change frame to sheet_name_ip and kbro_pm_xlsx_file_name
-kbro_pm_xlsx_file_name = 'KBRO PM.xlsx'
+kbro_pm_xlsx_file_name = 'XLSX_KBRO/KBRO PM.xlsx'
 # 傅星霖的多command
 # kbro_pm_xlsx_file_name = "KBRO PM-Upstream SNR-All.xlsx"
 event_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")

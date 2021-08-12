@@ -108,7 +108,7 @@ def word_log_txt_file_to_docx_asr(log_file_full, title):
             cmd_lines = []
         elif start_cmd:
             cmd_lines.append(txt_line)
-            if len(cmd_lines) > 15:
+            if len(cmd_lines) > 28:
                 # write out this cmd
                 word_write_command_to_docx(doc, cmd, cmd_lines, font_size_cmd, font_size_lines)
                 start_cmd = False
